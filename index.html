@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Paste - sync, efficiently</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<script src="src/scripts/cryptojs.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+
+	<link rel="icon" href="src/icons/paste.ico">
+	
+	<!-- Minify this -->
+	<link rel="stylesheet" type="text/css" href="src/styles/main.min.css">
+	<link rel="stylesheet" type="text/css" href="" id="theme">
+	<script src="src/scripts/main.min.js" defer></script>
+</head>
+<body>
+	<div id="connected">
+		<div class="wrap">
+			<div class="header">
+				<div>
+					<input id="username" type="text" name="username" placeholder="username">
+					<button class="submit" id="hideUsername">
+						<img src="src/icons/show.png" alt="hideUsername icon">
+					</button>
+				</div>
+				<div class="dobtns">
+					<button class="submit" id="copyBtn">
+						<img src="src/icons/clipboard.png" alt="clipboard icon">
+					</button>
+					<button class="submit btnRefresh">
+						<img src="src/icons/refresh.png" alt="refresh icon">
+					</button>
+					<button class="submit gotosettings">
+						<img src="src/icons/settings.png" alt="settings icon">
+					</button>
+				</div>
+			</div>
+			
+		<textarea id="note" placeholder="Tell me a story"></textarea>
+
+		</div>
+
+		<div id="alertWrap">
+			<div id="alert"></div>
+		</div>
+	</div>
+</body>
+</html>
