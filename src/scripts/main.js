@@ -111,9 +111,7 @@ function isLoggedIn() {
 		} else {
 			login();
 		}
-	}
-
-	
+	}	
 }
 
 function getusername(state, name) {
@@ -402,7 +400,10 @@ function theme(isInit, t) {
 		if (a === "nit") {
 			$("#theme").attr("href", "src/styles/night.min.css");
 		}
-		if (a === "day" || a === "") {
+		else if (a === "min") {
+			$("#theme").attr("href", "src/styles/minimal.css");
+		}
+		else if (a === "day" || a === "") {
 			$("#theme").attr("href", "");
 		}
 	}
@@ -421,9 +422,14 @@ function theme(isInit, t) {
 			l.theme = "nit";
 			storage("local", l);
 		}
-		if (t === "day") {
+		else if (t === "day") {
 			applyTheme("day");
 			l.theme = "day";
+			storage("local", l);
+		}
+		else if (t === "min") {
+			applyTheme("min");
+			l.theme = "min";
 			storage("local", l);
 		}
 	}

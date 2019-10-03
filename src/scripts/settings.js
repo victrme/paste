@@ -8,6 +8,11 @@ $(".nit").click(function() {
 	theme(false, "nit")
 });
 
+
+$(".min").click(function() {
+	theme(false, "min")
+});
+
 function erase() {
 
 	//envoie erase au serv, vide la note, efface le storage, retourne sur index
