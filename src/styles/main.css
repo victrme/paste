@@ -1,5 +1,5 @@
 * {
-	font-family: "SegoeUI", "Helvetica Neue", AppleGothic ,sans-serif; 
+	font-family: "SegoeUI", "Helvetica Neue", AppleGothic ,sans-serif;
 	transition: all .2s;
 	scroll-behavior: smooth;
 }
@@ -9,7 +9,7 @@ body {
 	overflow: auto;
 	color: #444;
 	font-size: 20px;
-	background: linear-gradient(38deg, #649173, #dbd5a4);
+	background: #fff;
 }
 
 #connected {
@@ -86,7 +86,7 @@ div.wrap {
 	color: #444;
 	background-color: white;
 	border: 1px solid transparent;
-	
+
 }
 
 .dobtns {

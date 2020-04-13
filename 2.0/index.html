@@ -5,62 +5,25 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="icon" href="src/icons/favicon.png">
-	
+	<link rel="icon" href="src/icons/paste.ico">
+
 	<!-- Minify this -->
 	<link rel="stylesheet" type="text/css" href="src/styles/main.css">
-	<script src="src/scripts/main.js" defer></script>
+	<script src="src/scripts/new.js" defer></script>
 </head>
-<body>
+<body class="dark">
 	<div class="wrap">
 		<header>
-			<div class="flexwrap">
-				<div class="username">
-					<div>
-						<div class="geopattern"></div>
-						<input type="text" name="username" placeholder="username">
-						<button class="submit switch">
-							<span class="submitting top">👉</span>
-							<span class="submitted">✔️</span>
-						</button>
-					</div>
-				</div>
-				<div class="settings">
-					<div>
-						<button class="param theme switch">
-							<span class="light top">☀️ light</span>
-							<span class="night">🌑 night</span>
-						</button>
-						<button class="param pin switch">
-							<span class="top">🔓 unlocked</span>
-							<span>🔒 locked</span>
-						</button>
-						<div class="lockpin">
-							<input type="password" name="lockpin" placeholder="type PIN" class="typepin">
-							<button class="cancel">❌</button>
-							<button class="confirm">✔️</button>
-						</div>
-
-						<button class="param erase switch">
-							<span>💣 erase</span>
-						</button>
-						<div class="eraseconf">
-							<span>Are you sure ?</span>
-							<button class="cancel">❌</button>
-							<button class="confirm">✔️</button>
-						</div>
-					</div>
-				</div>
+			<div style="display: flex">
+				<div id="userPattern" class="geopattern"></div>
+				<input id="i_usr" type="text" name="username" placeholder="username">
 			</div>
-			<div class="spacing"></div>
-			<button class="goSettings">⚙️</button>
 		</header>
 
 		<textarea id="note" placeholder="Write something here"></textarea>
 	</div>
 
 	<script src="src/scripts/cryptojs.min.js"></script>
-	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
 </body>
 </html>
