@@ -1,5 +1,5 @@
 * {
-	font-family: "Segoe UI", "Helvetica Neue", AppleGothic ,sans-serif;
+	font-family: courier, "Segoe UI", "Helvetica Neue", AppleGothic ,sans-serif;
 	transition: all .2s;
 	scroll-behavior: smooth;
 }
@@ -10,24 +10,18 @@ body {
 	color: #444;
 	font-size: 20px;
 	width: 100%;
-	min-height: 100vh;
 }
 
 div.wrap {
 	display: block;
 	max-width: 800px;
 	margin: auto;
-	margin-top: 40vh;
+	margin-top: 35vh;
   transform: translateY(-40%);
 }
 
 
 /* header */
-
-@keyframes pattern {
-  from {background-position: 0%}
-  to {background-position: 50%}
-}
 
 header {
 	overflow: hidden;
@@ -39,9 +33,8 @@ header .geopattern {
 	height: 2.5em;
 	border: 0;
 	background: #444;
-	background-size: 50%;
-	background-position: 0%;
-	animation: none;
+	background-size: 200%;
+	filter: grayscale(.5);
 }
 
 
@@ -53,6 +46,7 @@ header input {
 	font-size: 1em;
 	font-weight: bold;
 	outline: 0;
+	text-transform: lowercase;
 }
 
 textarea {
@@ -61,7 +55,7 @@ textarea {
 	width: calc(100% - 2em);
 	height: 50vh;
 	min-height: 200px;
-	margin: auto;
+	margin: -1px auto 0 auto;
 	padding: 1em;
 	font-size: 1em;
 	transition: height 0s;

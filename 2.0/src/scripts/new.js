@@ -4,63 +4,141 @@ const inputdom = document.getElementById('i_usr')
 const areadom = document.getElementById('note')
 const domPattern = document.getElementById('userPattern')
 let inputstate = "user"
-let savedUsername = ""
 
 function events() {
 
-  inputdom.onchange = function() {
+  inputdom.onchange = inputStateChange
 
-    //pin & user attributes
-    let attrs = {
-      user: {
-        placeholder: "PIN",
-        type: "password",
-        newState: "pin"
-      },
-      pin: {
-        placeholder: "username",
-        type: "text",
-        newState: "user"
-      }
+  areadom.onkeyup = function(e) {
+    data("note", this.value)
+
+    if (this.value.length === 0) {
+      alert('empty note')
     }
+  }
+}
 
-    //display control
-    inputdom.setAttribute("placeholder", attrs[inputstate].placeholder)
-    inputdom.setAttribute("type", attrs[inputstate].type)
+function inputStateChange() {
+  //pin & user attributes
+  const val = this.value.toLowerCase()
+  let attrs = {
+    user: {
+      placeholder: "PIN",
+      type: "password",
+      pattern: "[0-9]*",
+      inputmode: "numeric",
+      newState: "pin"
+    },
+    pin: {
+      placeholder: "username",
+      type: "text",
+      pattern: "[A-Za-z]*",
+      inputmode: "text",
+      newState: "user"
+    }
+  }
+
+  if (val.length > 3) {
+
+    //apply all inputs attributes
+    for (let attr in attrs[inputstate]) {
+      inputdom.setAttribute(attr, attrs[inputstate][attr])
+    }
 
     //value control
     if (inputstate === "user") {
 
-      savedUsername = inputdom.value
-      inputdom.value = ""
+      userPattern(val)
+      data("username", val)
+      this.value = ""
+      areadom.setAttribute("placeholder", "Waiting for pin")
 
     } else {
 
       //shows username, focuses to paste
-      inputdom.value = savedUsername
+      data("pin", val)
+      this.value = data("username")
       areadom.focus()
+      areadom.setAttribute("placeholder", "Write something here")
     }
 
-
-    //change input state
+    //toggle input state
     inputstate = attrs[inputstate].newState
-  }
-
-  domPattern.onmouseenter = function() {
-    this.style.animation = "pattern 2s ease-in-out"
-  }
-
-  domPattern.onmouseleave = function() {
-    this.style.animation = ""
   }
 }
 
-function userPattern() {
-  const pattern = GeoPattern.generate('')
+function userPattern(value='') {
+  const pattern = GeoPattern.generate(value)
   domPattern.style.background = pattern.toDataUrl()
 }
 
+function data(key, val) {
 
+  let data = sessionStorage.data === undefined ? {
+      username: "",
+      pin: "",
+      note: ""
+    }
+    : JSON.parse(sessionStorage.data)
+
+    if (!key && !data)
+      return data
+
+    if (key && !val)
+      return data[key]
+
+    if (key && val) {
+      data[key] = val
+      sessionStorage.data = JSON.stringify(data)
+    }
+}
+
+function encrypt(message) {
+
+  const user = data("username")
+	const pin = data("pin")
+
+	//ran: calcul bien trop compliqué pour pas grand chose, sert d'IV à la clé d'encryption
+	//ajoute ran au hash user pour que le message soit toujours encrypté avec une clé differente
+	//encrypte avec le hash de ran + user, rajoute ran au debut du message encrypté
+	//ran peut être découvert, il randomise seulement un peu plus l'encryption
+
+	let ran = (Math.floor((Math.random() + 1) * Math.pow(10, 15))).toString();
+	let key = CryptoJS.SHA3(user + pin + ran).toString();
+	let encr = CryptoJS.AES.encrypt(message, key).toString();
+
+	let full = ran + ",000000," + btoa(encr);
+
+	return full;
+}
+
+function decrypt(message) {
+
+	const user = data("username")
+	const pin = data("pin")
+
+	//ajoute le random a la clé pour pouvoir déchiffrer
+	let [ran, note] = message.split(",000000,");
+	let key = CryptoJS.SHA3(user + pin + ran).toString();
+
+	try {
+
+		let dec = CryptoJS.AES.decrypt(atob(note), key);
+		return dec.toString(CryptoJS.enc.Utf8)
+
+	} catch(e) {
+
+		//empeche d'envoyer un message d'erreur si le déchiffrage ne fonctionne pas
+		//pour eviter un leak ou truc du genre jsp
+		return console.log("alors");
+	}
+}
 
 events()
 userPattern()
+
+if (data("username")) {
+  inputdom.value = data("username")
+  userPattern(data("username"))
+  areadom.focus()
+}
