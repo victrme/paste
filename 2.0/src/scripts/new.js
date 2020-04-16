@@ -3,68 +3,83 @@
 const inputdom = document.getElementById('i_usr')
 const areadom = document.getElementById('note')
 const domPattern = document.getElementById('userPattern')
-let inputstate = "user"
+let inputstate = "user" //user - pin - (loggedin ?)
+let notestate = "empty" //empty - writing - ready - saved
 
 function events() {
 
-  inputdom.onchange = inputStateChange
+  inputdom.onchange = function() {
+
+    const val = this.value ? this.value.toLowerCase() : ""
+    if (val.length < 4) return false
+
+    if (inputstate === "user") {
+
+      if (data("username") !== val)
+        sessionStorage.removeItem("pin")
+
+      //dom change
+      inputStateChange("pin")
+      areadom.setAttribute("placeholder", "Waiting for pin")
+      userPattern(val)
+
+      //data change
+      data("username", val)
+      inputdom.value = ""
+      inputstate = "pin"
+
+    }
+    else if (inputstate === "pin") {
+
+      if (sessionStorage.pin) {
+        if (sessionStorage.pin !== val) {
+          inputdom.value = ""
+          return false
+        }
+      }
+
+      //dom change
+      inputStateChange("user")
+      areadom.focus()
+      areadom.setAttribute("placeholder", "Write something here")
+
+      //data change
+      inputdom.value = data("username")
+      sessionStorage.pin = val
+      inputstate = "user"
+    }
+  }
 
   areadom.onkeyup = function(e) {
-    data("note", this.value)
 
-    if (this.value.length === 0) {
-      alert('empty note')
-    }
+    if (this.value.length === 0) data("note", "")
+    else if (this.value.length < 200) data("note", encrypt(this.value))
   }
 }
 
-function inputStateChange() {
+function inputStateChange(etat) {
+
   //pin & user attributes
-  const val = this.value.toLowerCase()
-  let attrs = {
-    user: {
+  let attributes = {
+    pin: {
+      name: "pin",
       placeholder: "PIN",
       type: "password",
-      pattern: "[0-9]*",
-      inputmode: "numeric",
-      newState: "pin"
+      //pattern: "[0-9]*",
+      inputmode: "numeric"
     },
-    pin: {
+    user: {
+      name: "username",
       placeholder: "username",
       type: "text",
-      pattern: "[A-Za-z]*",
-      inputmode: "text",
-      newState: "user"
+      //pattern: "",
+      inputmode: "text"
     }
   }
 
-  if (val.length > 3) {
-
-    //apply all inputs attributes
-    for (let attr in attrs[inputstate]) {
-      inputdom.setAttribute(attr, attrs[inputstate][attr])
-    }
-
-    //value control
-    if (inputstate === "user") {
-
-      userPattern(val)
-      data("username", val)
-      this.value = ""
-      areadom.setAttribute("placeholder", "Waiting for pin")
-
-    } else {
-
-      //shows username, focuses to paste
-      data("pin", val)
-      this.value = data("username")
-      areadom.focus()
-      areadom.setAttribute("placeholder", "Write something here")
-    }
-
-    //toggle input state
-    inputstate = attrs[inputstate].newState
-  }
+  //apply all inputs attributes
+  for (let a in attributes[etat])
+    inputdom.setAttribute(a, attributes[etat][a])
 }
 
 function userPattern(value='') {
@@ -74,20 +89,23 @@ function userPattern(value='') {
 
 function data(key, val) {
 
-  let data = sessionStorage.data === undefined ? {
-      username: "",
-      pin: "",
-      note: ""
-    }
-    : JSON.parse(sessionStorage.data)
+  let data = {}
 
-    if (!key && !data)
+  if (sessionStorage.data === undefined)
+    data = {username: "", note: ""}
+  else
+    data = JSON.parse(sessionStorage.data)
+
+    //get full data
+    if (!key && !val)
       return data
 
-    if (key && !val)
+    //get specific data
+    if (key && val === undefined)
       return data[key]
 
-    if (key && val) {
+    //save secified data
+    if (key && val !== undefined) {
       data[key] = val
       sessionStorage.data = JSON.stringify(data)
     }
@@ -95,31 +113,27 @@ function data(key, val) {
 
 function encrypt(message) {
 
-  const user = data("username")
-	const pin = data("pin")
+  const user = CryptoJS.SHA3(data("username")).toString()
 
 	//ran: calcul bien trop compliqué pour pas grand chose, sert d'IV à la clé d'encryption
 	//ajoute ran au hash user pour que le message soit toujours encrypté avec une clé differente
 	//encrypte avec le hash de ran + user, rajoute ran au debut du message encrypté
 	//ran peut être découvert, il randomise seulement un peu plus l'encryption
 
-	let ran = (Math.floor((Math.random() + 1) * Math.pow(10, 15))).toString();
-	let key = CryptoJS.SHA3(user + pin + ran).toString();
-	let encr = CryptoJS.AES.encrypt(message, key).toString();
+	let time = Date.now()
+	let key = CryptoJS.SHA3(user + time).toString()
+	let encr = CryptoJS.AES.encrypt(message, key).toString()
 
-	let full = ran + ",000000," + btoa(encr);
-
-	return full;
+	return time + "," + btoa(encr)
 }
 
 function decrypt(message) {
 
 	const user = data("username")
-	const pin = data("pin")
 
 	//ajoute le random a la clé pour pouvoir déchiffrer
-	let [ran, note] = message.split(",000000,");
-	let key = CryptoJS.SHA3(user + pin + ran).toString();
+	let [time, note] = message.split(",");
+	let key = CryptoJS.SHA3(user + time).toString();
 
 	try {
 
@@ -130,15 +144,20 @@ function decrypt(message) {
 
 		//empeche d'envoyer un message d'erreur si le déchiffrage ne fonctionne pas
 		//pour eviter un leak ou truc du genre jsp
-		return console.log("alors");
+		return false
 	}
 }
 
 events()
-userPattern()
 
-if (data("username")) {
-  inputdom.value = data("username")
+//on startup
+if (!data("username")) {
+  userPattern()
+}
+else if (data("username")) {
+  inputstate = "pin"
+  inputStateChange("pin")
+  inputdom.focus()
+  areadom.setAttribute("placeholder", "Waiting for pin")
   userPattern(data("username"))
-  areadom.focus()
 }

@@ -37,11 +37,13 @@ header .geopattern {
 	filter: grayscale(.5);
 }
 
-
+header > div {
+	display: inline-flex;
+}
 
 header input {
 	border: 0;
-	padding: .5em;
+	padding: .5em 1em;
 	line-height: 1.5em;
 	font-size: 1em;
 	font-weight: bold;
