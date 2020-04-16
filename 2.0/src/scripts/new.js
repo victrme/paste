@@ -9,51 +9,72 @@ let notestate = "empty" //empty - writing - ready - saved
 function events() {
 
   inputdom.onchange = function() {
+    loginNote(this.value)
+  }
 
-    const val = this.value ? this.value.toLowerCase() : ""
-    if (val.length < 4) return false
+  inputdom.onkeyup = function(e) {
 
-    if (inputstate === "user") {
-
-      if (data("username") !== val)
-        sessionStorage.removeItem("pin")
-
-      //dom change
-      inputStateChange("pin")
-      areadom.setAttribute("placeholder", "Waiting for pin")
-      userPattern(val)
-
-      //data change
-      data("username", val)
-      inputdom.value = ""
-      inputstate = "pin"
-
-    }
-    else if (inputstate === "pin") {
-
-      if (sessionStorage.pin) {
-        if (sessionStorage.pin !== val) {
-          inputdom.value = ""
-          return false
-        }
-      }
-
-      //dom change
+    if (inputstate === "pin" && this.value === "" && e.which === 8) {
       inputStateChange("user")
-      areadom.focus()
-      areadom.setAttribute("placeholder", "Write something here")
-
-      //data change
-      inputdom.value = data("username")
-      sessionStorage.pin = val
-      inputstate = "user"
+      this.value = data("username")
     }
+    else if (e.which === 13) {
+      loginNote(this.value)
+    }
+    else if (inputstate === "user" && this.value === "") {
+      sessionStorage.removeItem("pin")
+      data("username", "")
+    }
+
   }
 
   areadom.onkeyup = function(e) {
 
-    if (this.value.length === 0) data("note", "")
-    else if (this.value.length < 200) data("note", encrypt(this.value))
+    if (this.value.length === 1 && e.which === 8)
+      data("note", "")
+
+    else if (this.value.length < 200 && data("username"))
+      data("note", encrypt(this.value))
+  }
+}
+
+function loginNote(value) {
+
+  const val = value ? value.toLowerCase() : ""
+  if (val.length < 4) return false
+
+  if (inputstate === "user") {
+
+    if (data("username") !== val)
+      sessionStorage.removeItem("pin")
+
+    //dom change
+    inputStateChange("pin")
+
+    userPattern(val)
+
+    //data change
+    data("username", val)
+    inputdom.value = ""
+
+  }
+  else if (inputstate === "pin") {
+
+    if (sessionStorage.pin) {
+      if (sessionStorage.pin !== val) {
+        inputdom.value = ""
+        return false
+      }
+    }
+
+    //dom change
+    inputStateChange("user")
+    areadom.focus()
+
+    //data change
+    inputdom.value = data("username")
+    sessionStorage.pin = val
+    areadom.value = decrypt(data("note"))
   }
 }
 
@@ -80,6 +101,10 @@ function inputStateChange(etat) {
   //apply all inputs attributes
   for (let a in attributes[etat])
     inputdom.setAttribute(a, attributes[etat][a])
+
+  areadom.setAttribute("placeholder", etat === "pin" ? "Waiting for pin" : "Write something here")
+
+  inputstate = etat
 }
 
 function userPattern(value='') {
@@ -155,9 +180,7 @@ if (!data("username")) {
   userPattern()
 }
 else if (data("username")) {
-  inputstate = "pin"
   inputStateChange("pin")
   inputdom.focus()
-  areadom.setAttribute("placeholder", "Waiting for pin")
   userPattern(data("username"))
 }
