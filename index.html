@@ -5,38 +5,41 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<script src="src/scripts/cryptojs.min.js"></script>
+	<link rel="apple-touch-icon" sizes="180x180" href="src/icons/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="src/icons/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="src/icons/favicon-16x16.png">
+	<link rel="manifest" href="src/icons/site.webmanifest">
+	<link rel="mask-icon" href="src/icons/safari-pinned-tab.svg" color="#513198">
+	<meta name="apple-mobile-web-app-title" content="Pastes">
+	<meta name="application-name" content="Pastes">
+	<meta name="msapplication-TileColor" content="#603cba">
+	<meta name="theme-color" content="#3a3633">
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
-
-	<link rel="icon" href="src/icons/paste.ico">
-
+	
 	<!-- Minify this -->
 	<link rel="stylesheet" type="text/css" href="src/styles/main.css">
 	<link rel="stylesheet" type="text/css" href="" id="theme">
-	<script src="src/scripts/main.min.js" defer></script>
+	<script src="src/scripts/main.js" defer></script>
 </head>
 <body>
 	<div id="connected">
 		<div class="wrap">
-			<div class="header">
+			<header>
 				<div>
-					<input id="username" type="text" name="username" placeholder="name">
+					<div id="pattern"></div>
+					<input id="username" type="text" name="username" placeholder="username">
 				</div>
 				<div class="dobtns">
-					<button class="submit" id="copyBtn">
-						<img src="src/icons/clipboard.png" alt="clipboard icon">
-					</button>
-					<button class="submit btnRefresh">
-						<img src="src/icons/refresh.png" alt="refresh icon">
-					</button>
-					<button class="submit gotosettings">
-						<img src="src/icons/settings.png" alt="settings icon">
-					</button>
+					<button class="submit" id="copyBtn">copy</button>
+					<button class="submit btnRefresh">refresh</button>
+					<button class="submit gotosettings">settings</button>
 				</div>
-			</div>
-
-		<textarea id="note" placeholder="Tell me a story"></textarea>
+			</header>
+			
+		<textarea id="note" placeholder="Write your paste here"></textarea>
 
 		</div>
 

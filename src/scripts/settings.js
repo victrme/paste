@@ -1,17 +1,3 @@
-//alors j'ai mis theme() dans main.js donc voila
-
-$(".day").click(function() {
-	theme(false, "day")
-});
-
-$(".nit").click(function() {
-	theme(false, "nit")
-});
-
-
-$(".min").click(function() {
-	theme(false, "min")
-});
 
 function erase() {
 
@@ -22,44 +8,45 @@ function erase() {
 		let l = storage("local");
 		toServer("lol", l.filename, "erase");
 
-		$("#note").val("");
-		$("#theme").attr("href", "");
-
 		localStorage.removeItem("paste");
 		sessionStorage.removeItem("paste");
 
 		location.replace("index.html");
 	}
 
-	//juste une confirmation pour pas delete trop facilement
+	let conf = false, confTimer = 0
 
-	var conf = false;
+	id('erase').onclick = function() {
 
-	$(".erase button.yes").click(() => {
 		if (conf) {
-			$(".erase h4").html("Erase From server");
-			$(".erase button.yes").html("Erase");
-			conf = false;
-			deleteAll();
+			clearTimeout(confTimer)
+			id('erase').innerText = "Erase from server"
+			conf = false
+			deleteAll()
 			
 		} else {
-			$(".erase h4").html("Are you sure ?");
-			$(".erase button.yes").html("Yes");
-			conf = true;
+			id('erase').innerText = "Are you sure ?"
+			conf = true
+			confTimer = setTimeout(function() {
+				id('erase').innerText = "Erase from server"
+				conf = false
+			}, 2000)
 		}
-	});
+	}
+}
 
-	$(".erase button.no").click(() => {
-		conf = false;
-		$(".erase h4").html("Erase From server");
-		$(".erase button.yes").html("Erase");
-	});
+id("day").onclick = function() {
+	theme(false, "day")
+}
+
+id("nit").onclick = function() {
+	theme(false, "nit")
 }
 
 //ciao to paste
-$(".gotopaste").click(() => {
-	location.replace("index.html");
-})
+id("gotopaste").onclick = function() {
+	location.replace("index.html")
+}
 
-erase();
-theme(true);
+erase()
+theme(true)

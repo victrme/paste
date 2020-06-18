@@ -1,15 +1,11 @@
-* {
-	font-family: "SegoeUI", "Helvetica Neue", AppleGothic ,sans-serif;
-	transition: all .2s;
-	scroll-behavior: smooth;
-}
+
 
 body {
 	margin: 0;
 	overflow: auto;
-	color: #444;
-	font-size: 20px;
-	background: #fff;
+	color: #fff;
+	font-family: monospace;
+	background: #487962;
 }
 
 #connected {
@@ -19,22 +15,12 @@ body {
 }
 
 button,
-.header a {
-	font-size: 1.2rem;
+header a {
 	border: 1px solid transparent;
-	background-color: white;
+	background-color: transparent;
 	padding: .5em;
-	color: #444;
 	cursor: pointer;
-}
-
-button:hover {
-	background-color: rgba(255,255,255,.8);
-	color: #444;
-}
-
-button:active {
-	background-color: rgba(255,255,255,.5);
+	font-family: monospace;
 }
 
 div.wrap {
@@ -43,50 +29,48 @@ div.wrap {
 	margin: auto;
 }
 
-.header {
+header {
 	position: relative;
 	max-width: 800px;
 	margin: auto;
-	padding: 1em;
+	padding: 2em 0;
 	display: flex;
 	align-content: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
 }
 
-.header > div {
+header > div {
 	display: flex;
 }
 
 
 
-#connected .header .submit {
-	min-width: 70px;
-	margin-right: .2em;
-	border-radius: 0px;
+#connected header button {
+	color: #fff;
+	padding-left: 2em;
 }
 
-#connected .header #hideUsername {
-	min-width: 0;
+header #pattern {
+	width: 3em;
+	height: 3em;
+	border-radius: 100%;
+	margin-right: 1em;
+	background-size: 200%;
 }
-
-#connected .header img {
-	height: 1.5rem;
-	width: 1.5rem;
-}
-
-
 
 #username {
-	padding: .5em 0 .5em .5em;
+	padding: .5em 1em;
 	max-width: 200px;
-	font-weight: bolder;
-	font-size: 1.5rem;
+	font-family: monospace;
 	line-height: 1em;
-	color: #444;
-	background-color: white;
-	border: 1px solid transparent;
+	color: white;
+	border: none;
+	background-color: rgba(20,20,20,.1);
+}
 
+#username::-webkit-input-placeholder {
+	color: #eee;
 }
 
 .dobtns {
@@ -100,10 +84,12 @@ textarea {
 	height: 50vh;
 	min-height: 200px;
 	margin: auto;
-	padding: 1em;
+	padding: 2em;
 	font-size: 1em;
 	transition: all 0s;
 	resize: vertical;
+	background-color: rgba(20,20,20,.1);
+	color: #fff;
 }
 
 #note {
@@ -113,70 +99,54 @@ textarea {
 #alertWrap {
 	position: fixed;
 	display: block;
-	bottom: 0;
+	top: 2em;
 	width: 100%;
 	text-align: center;
+	z-index: -1;
 }
 
 #alert {
 	opacity: 0;
 	display: inline-block;
-	background-color: white;
-	padding: 0 1rem;
-	line-height: 2em;
-	border: 1px solid #bbb;
+	background-color: rgba(20,20,20,.1);
+	padding: 0 2em;
+	line-height: 3em;
 	border-bottom: 0;
 }
 
 main.settings {
 	max-width: 500px;
-	min-height: 100vh;
+	min-height: calc(100vh - 5em);
 	margin: auto;
+	display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-.settings h3 {
-	display: inline-block;
-	background: white;
-	padding: .5em;
-	margin: 2em 1em;
+.settings button {
+	color: #fff;
 }
 
-.settings .catSettings {
-	max-width: 400px;
-	margin: 2em auto;
-	text-align: left;
+.settings button:after {
+	content: "  <";
+	opacity: 0;
+	transition: opacity .1s;
 }
 
-.settings h4 {
-	display: inline-block;
-	font-size: 1.2rem;
-	font-weight: bold;
-	border: 1px solid transparent;
-	background-color: white;
-	padding: .5em;
-	margin: 0;
+.settings button:hover:after {
+	opacity: 1;
+	transition: opacity .1s;
 }
 
-.settings .creator {
-	padding: 0 1.5em;
-	position: fixed;
-	bottom: 1em;
+footer {
+	min-height: 5em;
+	text-align: center;
 }
 
-.settings .creator span {
-	font-size: .9em;
-	line-height: 2em;
-	padding: .5em;
-	background: white;
-}
-
-.settings .creator a {
-	color: #444;
-	text-decoration: none;
-}
-
-.settings .creator a:hover {
-	color: #888;
+footer, footer a {
+	font-size: 1rem;
+	color: #fff;
 }
 
 @media only screen and (max-width: 450px) {
@@ -185,12 +155,12 @@ main.settings {
 		margin-top: 1rem;
 	}
 
-	#connected .header .submit {
+	#connected header .submit {
 		width: auto;
 		margin: 0;
 	}
 
-	.header > div {
+	header > div {
 		width: 100%;
 	}
 
@@ -210,4 +180,38 @@ main.settings {
 	.settings .catSettings {
 		text-align: center;
 	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* DARK MODE */
+
+
+
+body.nit {
+	background: #000;
+}
+
+body.nit * {
+	color: #ddd;
+}
+
+body.nit textarea,
+body.nit button,
+body.nit #username,
+body.nit #alert,
+body.nit .settings h3,
+body.nit .settings h4,
+body.nit .settings .creator span,
+body.nit .settings .creator a {
+	color: #ddd
 }
