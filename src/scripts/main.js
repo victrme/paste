@@ -237,19 +237,10 @@ $("#note").keydown(() => {
 });
 
 //les boutons settings
-$(".btnRefresh").click(() => {
-	alertCtrl("Refreshed !");
-	let l = storage("local");
-	toServer("lol", l.filename, "read");
-});
-
-$("#copyBtn").click(() => {
-	copyText();
-});
-
-$(".gotosettings").click(() => {
-	location.replace("settings.html");
-});
+id("refresh").onclick = function() {
+	alertCtrl("Refreshed !")
+	toServer("lol", storage("local").filename, "read")
+}
 
 
 
@@ -293,30 +284,6 @@ function toServer(data, fnam, func) {
 	xhr.send(send);
 }
 
-function copyText() {
-
-	// Create a "hidden" input
-	// Assign it the value of the specified element
-	// Append it to the body
-	// Highlight its content
-	// Copy the highlighted text
-	// Remove it from the body
-	// Non je l'ai pas copié sur internet c'est pas vrai
-
-	var val = document.getElementById("note").value;
-
-	if (val != "") {
-		var aux = document.createElement("input");
-		aux.setAttribute("value", document.getElementById("note").value);
-		document.body.appendChild(aux);
-		aux.select();
-		document.execCommand("copy");
-		document.body.removeChild(aux);
-
-		alertCtrl("Copied !");
-	}	
-}
-
 var t;
 function alertCtrl(state) {
 
@@ -332,23 +299,93 @@ function alertCtrl(state) {
 	}, 1000);
 }
 
-function theme(init, newTheme) {
+function settings() {
 
-	let l = storage("local")
-	const applyTheme = val => document.body.setAttribute("class", val)
+	function theme(color, init) {
 
-	if (init)
-		applyTheme(l.theme);
-
-	else {
-		applyTheme(newTheme);
-		l.theme = newTheme;
-		storage("local", l);
+		function applyTheme(val) {
+	
+			function textColorControl(hex) {
+	
+				if (hex.indexOf("#") !== -1)
+					hex = hex.replace("#", "")
+			
+				hex = parseInt(hex[0] + hex[1], 16) + parseInt(hex[2] + hex[3], 16) + parseInt(hex[4] + hex[5], 16)
+				let coef = hex / 765
+			
+				return (coef > .6 ? "black" : "white") 
+			}
+	
+			document.body.style.background = val
+			document.body.style.color = textColorControl(val)
+		}
+	
+		let l = storage("local")
+	
+		if (init)
+			applyTheme(l.theme)
+	
+		else {
+			applyTheme(color);
+			l.theme = color;
+			storage("local", l);
+		}
 	}
+
+	function erase() {
+
+		//envoie erase au serv, vide la note, efface le storage, retourne sur index
+	
+		function deleteAll() {
+	
+			let l = storage("local");
+			toServer("lol", l.filename, "erase");
+	
+			localStorage.removeItem("paste");
+			sessionStorage.removeItem("paste");
+	
+			location.replace("index.html");
+		}
+	
+		if (conf) {
+			clearTimeout(confTimer)
+			id('erase').innerText = "Erase from server"
+			conf = false
+			deleteAll()
+			
+		} else {
+			id('erase').innerText = "Are you sure ?"
+			conf = true
+			confTimer = setTimeout(function() {
+				id('erase').innerText = "Erase from server"
+				conf = false
+			}, 2000)
+		}
+	}
+
+	let conf = false, confTimer = 0
+	
+	id("background").onchange = function() {
+		theme(this.value)
+	}
+
+	id('erase').onclick = function() {
+		erase()
+	}
+
+	id('toSettings').onclick = function() {
+		//idk felt sexy, might delete later
+		const dom = id('settings')
+		dom.className = (dom.className !== "open" ? "open" : "")
+	}
+	
+	theme(null, true)
 }
+
+
 
 window.onload = function() {
 
 	isLoggedIn();
-	theme(true)
+	settings()
 };

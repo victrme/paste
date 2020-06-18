@@ -26,22 +26,29 @@
 </head>
 <body>
 	<div id="connected">
-		<div class="wrap">
-			<header>
-				<div>
+		<header>
+			<div>
+				<div class="user">
 					<div id="pattern"></div>
 					<input id="username" type="text" name="username" placeholder="username">
+					<button id="refresh" class="submit">&#x21bb;</button>
 				</div>
-				<div class="dobtns">
-					<button class="submit" id="copyBtn">copy</button>
-					<button class="submit btnRefresh">refresh</button>
-					<button class="submit gotosettings">settings</button>
-				</div>
-			</header>
+				<button id="toSettings">settings</button>
+			</div>
+			<div id="settings">
+				<p>
+					<span>password: </span>
+					<input id="password" type="password" placeholder="soon****" />
+				</p>
+				<p>
+					<span>color: </span>
+					<input id="background" placeholder="#487962" />
+				</p>
+				<button id="erase">erase from server</button>
+			</div>
+		</header>
 			
 		<textarea id="note" placeholder="Write your paste here"></textarea>
-
-		</div>
 
 		<div id="alertWrap">
 			<div id="alert"></div>

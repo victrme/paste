@@ -2,23 +2,40 @@
 
 body {
 	margin: 0;
-	overflow: auto;
+	overflow-x: hidden;
 	color: #fff;
 	font-family: monospace;
-	background: #487962;
+	background: #000;
+}
+
+button, a, input, textarea {color: inherit}
+
+input::placeholder,
+textarea::placeholder {
+	color: inherit;
+	opacity: .5;
+}
+
+input {
+	padding: .5em 1em;
+	font-family: monospace;
+	line-height: 1em;
+	border: none;
+	background-color: rgba(20,20,20,.0);
 }
 
 #connected {
 	position: relative;
 	width: 100%;
+	max-width: 800px;
 	min-height: 100vh;
+	margin: auto;
 }
 
 button,
 header a {
-	border: 1px solid transparent;
+	border: none;
 	background-color: transparent;
-	padding: .5em;
 	cursor: pointer;
 	font-family: monospace;
 }
@@ -30,26 +47,18 @@ div.wrap {
 }
 
 header {
-	position: relative;
-	max-width: 800px;
-	margin: auto;
-	padding: 2em 0;
+	padding: 1em;
+	padding-top: 2em;
+}
+
+header > div,
+header > div > .user {
 	display: flex;
-	align-content: center;
 	justify-content: space-between;
-	flex-wrap: wrap;
-}
-
-header > div {
-	display: flex;
 }
 
 
 
-#connected header button {
-	color: #fff;
-	padding-left: 2em;
-}
 
 header #pattern {
 	width: 3em;
@@ -60,21 +69,7 @@ header #pattern {
 }
 
 #username {
-	padding: .5em 1em;
 	max-width: 200px;
-	font-family: monospace;
-	line-height: 1em;
-	color: white;
-	border: none;
-	background-color: rgba(20,20,20,.1);
-}
-
-#username::-webkit-input-placeholder {
-	color: #eee;
-}
-
-.dobtns {
-	display: flex;
 }
 
 textarea {
@@ -88,8 +83,7 @@ textarea {
 	font-size: 1em;
 	transition: all 0s;
 	resize: vertical;
-	background-color: rgba(20,20,20,.1);
-	color: #fff;
+	background-color: rgba(20,20,20,.0);
 }
 
 #note {
@@ -108,45 +102,35 @@ textarea {
 #alert {
 	opacity: 0;
 	display: inline-block;
-	background-color: rgba(20,20,20,.1);
+	background-color: rgba(20,20,20,.0);
 	padding: 0 2em;
 	line-height: 3em;
 	border-bottom: 0;
 }
 
-main.settings {
-	max-width: 500px;
-	min-height: calc(100vh - 5em);
-	margin: auto;
+#settings {
+	width: 100%;
 	display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
+	justify-content: flex-start;
+	padding-top: 0;
+	max-height: 0;
+	overflow: hidden;
+	transition: padding .1s, max-height .1s;
 }
 
-.settings button {
-	color: #fff;
+#settings.open {
+	max-height: 4em;
+	padding-top: 2em;
+	transition: padding .1s, max-height .1s;
 }
 
-.settings button:after {
-	content: "  <";
-	opacity: 0;
-	transition: opacity .1s;
+#settings p {
+	margin: 0;
+	margin-left: 1em;
 }
 
-.settings button:hover:after {
-	opacity: 1;
-	transition: opacity .1s;
-}
-
-footer {
-	min-height: 5em;
-	text-align: center;
-}
-
-footer, footer a {
-	font-size: 1rem;
-	color: #fff;
+#settings input {
+	max-width: 80px;
 }
 
 @media only screen and (max-width: 450px) {
@@ -176,42 +160,4 @@ footer, footer a {
 		display: inline-block;
 		line-height: 1.2em;
 	}
-
-	.settings .catSettings {
-		text-align: center;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-/* DARK MODE */
-
-
-
-body.nit {
-	background: #000;
-}
-
-body.nit * {
-	color: #ddd;
-}
-
-body.nit textarea,
-body.nit button,
-body.nit #username,
-body.nit #alert,
-body.nit .settings h3,
-body.nit .settings h4,
-body.nit .settings .creator span,
-body.nit .settings .creator a {
-	color: #ddd
 }
