@@ -128,31 +128,30 @@ textarea {
 	max-width: 80px;
 }
 
-@media only screen and (max-width: 450px) {
-
-	h1 {
-		margin-top: 1rem;
-	}
-
-	#connected header .submit {
-		width: auto;
-		margin: 0;
-	}
-
-	header > div {
-		width: 100%;
-	}
+@media only screen and (max-width: 750px) {
 
 	#username {
-		max-width: calc(100% - 4rem);
+		max-width: calc(7.15px * 16);
 	}
 
-	.loginWrap {
-		margin: 2em 0;
+	#settings {
+		justify-content: space-between;
+		align-items: flex-start;
 	}
 
-	ul li {
-		display: inline-block;
-		line-height: 1.2em;
+	#settings p,
+	#settings input,
+	#settings button{
+		margin: 0;
+		padding: 0;
+	}
+
+	#settings input {
+		margin-top: .5em;
+	}
+
+	#settings button {
+		line-height: 1.5em;
+		text-align: right;
 	}
 }

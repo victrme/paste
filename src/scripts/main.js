@@ -109,7 +109,6 @@ function isLoggedIn() {
 
 		removeUserData(l)
 		id("username").value = hash
-		setuserinputwidth()
 		login()
 
 	} else {
@@ -433,4 +432,5 @@ window.onload = function() {
 
 	isLoggedIn()
 	settings()
+	setuserinputwidth()
 };
