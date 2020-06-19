@@ -37,13 +37,22 @@ function storage(type, data) {
 					encoded: "",
 					filename: "",
 					theme: "",
-					zoom: 100
+					zoom: 1
 				}
 				localStorage.paste = JSON.stringify(x);
 				return JSON.parse(localStorage.paste);
 			}
 		}
 	}
+}
+
+function removeUserData(local) {
+	local.user = ""
+	local.encoded = ""
+	local.filename = ""
+	storage("local", local)
+
+	sessionStorage.removeItem("paste");
 }
 
 function encrypt(message, user) {
@@ -91,15 +100,14 @@ function isLoggedIn() {
 
 	//check on page load si le localStorage a le username
 	//si oui on affiche le username, cherche la note et affiche
-	//si non on efface le storage pour pas d'ambiguité
+	//si non on enleve le username present pour pas d'ambiguité
 
 	var l = storage("local");
 	var hash = window.location.hash.substr(1);
 
 	if (hash != "") {
 
-		localStorage.removeItem("paste");
-		sessionStorage.removeItem("paste");
+		removeUserData(l);
 		$("#username").val(hash);
 		login();
 
@@ -283,7 +291,7 @@ function theme(color, init) {
 	let l = storage("local")
 
 	if (init) {
-		
+
 		applyTheme(l.theme)
 		id("background").value = l.theme
 
@@ -376,8 +384,7 @@ window.onload = function() {
 	//quand on appuie sur entrée dans le username input
 	id("username").onkeypress = function(e) {
 		if (e.keyCode == 13) {
-			localStorage.removeItem("paste");
-			sessionStorage.removeItem("paste");
+			removeUserData(storage("local"));
 			login();
 			return false;
 		}
