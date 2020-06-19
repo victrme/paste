@@ -36,7 +36,8 @@ function storage(type, data) {
 					user: "",
 					encoded: "",
 					filename: "",
-					theme: ""
+					theme: "",
+					zoom: 100
 				}
 				localStorage.paste = JSON.stringify(x);
 				return JSON.parse(localStorage.paste);
@@ -281,10 +282,12 @@ function theme(color, init) {
 
 	let l = storage("local")
 
-	if (init)
+	if (init) {
+		
 		applyTheme(l.theme)
+		id("background").value = l.theme
 
-	else {
+	} else {
 		applyTheme(color);
 		l.theme = color;
 		storage("local", l);
@@ -324,10 +327,30 @@ function settings() {
 		}
 	}
 
+	function zoom(val, init) {
+
+		let l = storage("local")
+
+		if (init) {
+
+			id("zoom").value = l.zoom
+			document.body.style.zoom = l.zoom
+
+		} else {
+			document.body.style.zoom = val
+			l.zoom = val
+			storage("local", l)
+		}
+	}
+
 	let conf = false, confTimer = 0
 	
 	id("background").onchange = function() {
 		theme(this.value)
+	}
+	
+	id("zoom").onchange = function() {
+		zoom(this.value)
 	}
 
 	id('erase').onclick = function() {
@@ -341,6 +364,7 @@ function settings() {
 	}
 	
 	theme(null, true)
+	zoom(null, true)
 }
 
 //globalooo
