@@ -1,6 +1,4 @@
 
-const id = elem => document.getElementById(elem)
-
 function storage(type, data) {
 
 	//initialise le storage de paste en mettant
@@ -37,7 +35,6 @@ function storage(type, data) {
 				let x = {
 					user: "",
 					encoded: "",
-					hidden: false,
 					filename: "",
 					theme: ""
 				}
@@ -161,7 +158,7 @@ function login() {
 
 		if (!l.hidden) {
 			
-			$(location).attr('href', window.location.pathname + "#" + plaintext);
+			$(location).attr('href', window.location.pathname + plaintext);
 
 		}
 	}
@@ -181,19 +178,6 @@ function login() {
 	toServer("lol", l.filename, "read");
 }
 
-//quand on appuie sur entrée dans le username input
-$("#username").keypress(function(e) {
-	if (e.keyCode == 13) {
-		localStorage.removeItem("paste");
-		sessionStorage.removeItem("paste");
-        login();
-        return false;
-    }
-});
-
-//globalooo
-var timeout;
-
 function isTyping() {
 
 	//commence un timer de .7s
@@ -205,9 +189,9 @@ function isTyping() {
 
 	alertCtrl("Typing...");
 
-    clearTimeout(timeout);
+    clearTimeout(typingTimeout);
 
-    timeout = setTimeout(function () {
+    typingTimeout = setTimeout(function () {
 
     	let sstore = storage("session");
     	let rawnote = $("#note").val();
@@ -226,23 +210,6 @@ function isTyping() {
 
     }, 700);
 }
-
-//les fameux paste et keypress
-$("#note").on("paste", () => {
-	isTyping();
-});
-
-$("#note").keydown(() => {
-	isTyping();
-});
-
-//les boutons settings
-id("refresh").onclick = function() {
-	alertCtrl("Refreshed !")
-	toServer("lol", storage("local").filename, "read")
-}
-
-
 
 function toServer(data, fnam, func) {
 
@@ -284,17 +251,16 @@ function toServer(data, fnam, func) {
 	xhr.send(send);
 }
 
-var t;
 function alertCtrl(state) {
 
 	//la petite popup pour dire qu'une action a été effectué
 
-	clearTimeout(t);
+	clearTimeout(alertTimeout);
 	var a = $("#alert");
 	a.html(state);
 
 	a.css("opacity", 1);
-	t = setTimeout(function() {
+	alertTimeout = setTimeout(function() {
 		a.css("opacity", 0);
 	}, 1000);
 }
@@ -382,10 +348,38 @@ function settings() {
 	theme(null, true)
 }
 
-
+//globalooo
+let typingTimeout = 0, alertTimeout = 0
+const id = elem => document.getElementById(elem)
 
 window.onload = function() {
 
-	isLoggedIn();
+	//quand on appuie sur entrée dans le username input
+	id("username").onkeypress = function(e) {
+		if (e.keyCode == 13) {
+			localStorage.removeItem("paste");
+			sessionStorage.removeItem("paste");
+			login();
+			return false;
+		}
+	}
+
+	//les fameux paste et keypress
+	$("#note").on("paste", () => {
+		isTyping();
+	});
+
+	$("#note").keydown(() => {
+		isTyping();
+	});
+
+	//les boutons settings
+	id("refresh").onclick = function() {
+		alertCtrl("Refreshed !")
+		toServer("lol", storage("local").filename, "read")
+	}
+
+
+	isLoggedIn()
 	settings()
 };

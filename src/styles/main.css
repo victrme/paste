@@ -90,24 +90,6 @@ textarea {
 	outline: none;
 }
 
-#alertWrap {
-	position: fixed;
-	display: block;
-	top: 2em;
-	width: 100%;
-	text-align: center;
-	z-index: -1;
-}
-
-#alert {
-	opacity: 0;
-	display: inline-block;
-	background-color: rgba(20,20,20,.0);
-	padding: 0 2em;
-	line-height: 3em;
-	border-bottom: 0;
-}
-
 #settings {
 	width: 100%;
 	display: flex;
@@ -119,7 +101,7 @@ textarea {
 }
 
 #settings.open {
-	max-height: 4em;
+	max-height: 5em;
 	padding-top: 2em;
 	transition: padding .1s, max-height .1s;
 }
