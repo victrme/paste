@@ -107,16 +107,17 @@ function isLoggedIn() {
 
 	if (hash != "") {
 
-		removeUserData(l);
-		$("#username").val(hash);
-		login();
+		removeUserData(l)
+		id("username").value = hash
+		setuserinputwidth()
+		login()
 
 	} else {
 
 		if (l.user) {
 
 			getusername();
-			$("#note").focus();
+			id("note").focus();
 			toServer("lol", l.filename, "read");
 
 		} else {
@@ -273,19 +274,34 @@ function theme(color, init) {
 
 	function applyTheme(val) {
 
-		function textColorControl(hex) {
+		function textColorSelection(hex) {
+			
+			if (hex.length === 3) {
+				hex = 
+					parseInt(hex[0]**2, 16)
+					+ parseInt(hex[1]**2, 16)
+					+ parseInt(hex[2]**2, 16)
+			}
+			else if (hex.length === 6) {
+				hex = 
+					parseInt(hex[0] + hex[1], 16)
+					+ parseInt(hex[2] + hex[3], 16)
+					+ parseInt(hex[4] + hex[5], 16)
+			}
+			else {
+				return false
+			}
 
-			if (hex.indexOf("#") !== -1)
-				hex = hex.replace("#", "")
-		
-			hex = parseInt(hex[0] + hex[1], 16) + parseInt(hex[2] + hex[3], 16) + parseInt(hex[4] + hex[5], 16)
-			let coef = hex / 765
-		
-			return (coef > .5 ? "black" : "white") 
+			return ((hex / 765) > .5 ? "black" : "white") 
 		}
 
-		document.body.style.background = val
-		document.body.style.color = textColorControl(val)
+		let textColor = textColorSelection(val.replace("#", ""))
+
+		//doesnt apply colors that can't be contrasted properly
+		if (textColor) {
+			document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val)
+			document.body.style.color = textColor
+		}
 	}
 
 	let l = storage("local")
@@ -353,11 +369,11 @@ function settings() {
 
 	let conf = false, confTimer = 0
 	
-	id("background").onchange = function() {
+	id("background").oninput = function() {
 		theme(this.value)
 	}
 	
-	id("zoom").onchange = function() {
+	id("zoom").oninput = function() {
 		zoom(this.value)
 	}
 
@@ -373,20 +389,29 @@ function settings() {
 	
 	theme(null, true)
 	zoom(null, true)
+	id("connected").className = "loaded"
 }
 
 //globalooo
 let typingTimeout = 0, alertTimeout = 0
 const id = elem => document.getElementById(elem)
+const setuserinputwidth = (elem=id("username"), backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
 
 window.onload = function() {
 
 	//quand on appuie sur entrée dans le username input
-	id("username").onkeypress = function(e) {
-		if (e.keyCode == 13) {
+	id("username").onkeydown = function(e) {
+
+		if (e.keyCode === 8) {
+			setuserinputwidth(this, true)
+		}
+		else if (e.keyCode === 13) {
 			removeUserData(storage("local"));
 			login();
 			return false;
+		}
+		else {
+			setuserinputwidth(this)
 		}
 	}
 

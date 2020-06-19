@@ -17,7 +17,8 @@ textarea::placeholder {
 }
 
 input {
-	padding: .5em 1em;
+	padding: .5em;
+	margin: 0 .5em;
 	font-family: monospace;
 	line-height: 1em;
 	border: none;
@@ -29,6 +30,13 @@ input {
 	width: 100%;
 	max-width: 800px;
 	margin: auto;
+	opacity: 0;
+	transition: opacity .1s;
+}
+
+#connected.loaded {
+	opacity: 1;
+	transition: opacity .1s;
 }
 
 button,
@@ -68,7 +76,9 @@ header #pattern {
 }
 
 #username {
-	max-width: 200px;
+	width: calc(7.15px * 10);
+	min-width: calc(7.15px * 10);
+	max-width: calc(7.15px * 32);
 }
 
 #alert {
