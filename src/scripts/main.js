@@ -53,12 +53,11 @@ function encrypt(message, user) {
 	//ran peut être découvert, il randomise seulement un peu plus l'encryption
 
 	let l = storage("local");
-
 	let ran = (Math.floor((Math.random() + 1) * Math.pow(10, 15))).toString();
 	let key = CryptoJS.SHA3(user + ran).toString();
 	let encr = CryptoJS.AES.encrypt(message, key).toString();
 
-	let full = ran + ",000000," + btoa(encr);
+	let full = ran + ",000000," + btoa(encr) + (l.theme !== "" ? ",000000," + btoa(l.theme) : "");
 
 	return full;
 }
@@ -69,6 +68,10 @@ function decrypt(message) {
 	//ajoute le random a la clé pour pouvoir déchiffrer
 	let arr = message.split(",000000,");
 	let key = CryptoJS.SHA3(l.user + arr[0]).toString();
+
+	if (arr[2]) {
+		theme(atob(arr[2]))
+	}
 
 	try {
 
@@ -155,12 +158,7 @@ function login() {
 		let enc = btoa(CryptoJS.AES.encrypt(plaintext, l.user).toString());
 		l.encoded = enc;
 		$('#pattern').geopattern(plaintext);
-
-		if (!l.hidden) {
-			
-			$(location).attr('href', window.location.pathname + plaintext);
-
-		}
+		$(location).attr('href', window.location.pathname + "#" + plaintext)
 	}
 
 
@@ -220,14 +218,11 @@ function toServer(data, fnam, func) {
 	var xhr = new XMLHttpRequest(),
 		method = "POST",
 		url = "save.php";
-	var send;
 
-	if (func === "send") {
-		send = "data=" + data + "&fnam=" + fnam + "&func=" + func;
-	}
-	if (func === "read") {
-		send = "data=lol&fnam=" + fnam + "&func=" + func;
-	}
+	let send ="data="
+		+ (func === "read" ? "lol" : data)
+		+ "&fnam=" + fnam
+		+ "&func=" + func;
 
 	xhr.open(method, url, true);
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -265,38 +260,38 @@ function alertCtrl(state) {
 	}, 1000);
 }
 
-function settings() {
+function theme(color, init) {
 
-	function theme(color, init) {
+	function applyTheme(val) {
 
-		function applyTheme(val) {
-	
-			function textColorControl(hex) {
-	
-				if (hex.indexOf("#") !== -1)
-					hex = hex.replace("#", "")
-			
-				hex = parseInt(hex[0] + hex[1], 16) + parseInt(hex[2] + hex[3], 16) + parseInt(hex[4] + hex[5], 16)
-				let coef = hex / 765
-			
-				return (coef > .6 ? "black" : "white") 
-			}
-	
-			document.body.style.background = val
-			document.body.style.color = textColorControl(val)
+		function textColorControl(hex) {
+
+			if (hex.indexOf("#") !== -1)
+				hex = hex.replace("#", "")
+		
+			hex = parseInt(hex[0] + hex[1], 16) + parseInt(hex[2] + hex[3], 16) + parseInt(hex[4] + hex[5], 16)
+			let coef = hex / 765
+		
+			return (coef > .5 ? "black" : "white") 
 		}
-	
-		let l = storage("local")
-	
-		if (init)
-			applyTheme(l.theme)
-	
-		else {
-			applyTheme(color);
-			l.theme = color;
-			storage("local", l);
-		}
+
+		document.body.style.background = val
+		document.body.style.color = textColorControl(val)
 	}
+
+	let l = storage("local")
+
+	if (init)
+		applyTheme(l.theme)
+
+	else {
+		applyTheme(color);
+		l.theme = color;
+		storage("local", l);
+	}
+}
+
+function settings() {
 
 	function erase() {
 

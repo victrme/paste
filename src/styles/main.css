@@ -72,6 +72,10 @@ header #pattern {
 	max-width: 200px;
 }
 
+#alert {
+	line-height: 3em;
+}
+
 textarea {
 	display: block;
 	border: 0;
