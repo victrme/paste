@@ -6,6 +6,7 @@ body {
 	color: #fff;
 	font-family: monospace;
 	background: #000;
+	transition: background .2s, color .2s, zoom .2s;
 }
 
 button, a, input, textarea {color: inherit}

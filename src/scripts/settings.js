@@ -83,9 +83,9 @@ function settings(option, newVal) {
 
 		function applyTheme(val) {
 
-			function textColorSelection(hex) {
+			function textColorSelection(hex) { 
 
-				if (hex.length === 3) {
+                if (hex.length === 3) {
 					hex =
 						parseInt(hex[0], 16) ** 2
 						+ parseInt(hex[1], 16) ** 2
@@ -106,11 +106,16 @@ function settings(option, newVal) {
 
 			let textColor = textColorSelection(val.replace("#", ""));
 
-			//doesnt apply colors that can't be contrasted properly
+            
+            if (val === "") {
+                document.body.style.background = "#000"
+                document.body.style.color = "white"
+            }
+            //doesnt apply colors that can't be contrasted properly
 			if (textColor) {
-				document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val);
-                document.body.style.color = textColor;
-                id("background").value = val;
+				document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val)
+                document.body.style.color = textColor
+                id("background").value = val
 			}
 		}
 
