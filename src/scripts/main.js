@@ -6,6 +6,7 @@ function removeUserData(local) {
 	storage("local", local)
 
 	id("note").removeAttribute("disabled")
+	id("note").value = ""
 	id("password").value = ""
 	document.body.style = ""
 
@@ -81,12 +82,14 @@ function decrypt(package) {
 
 			id("note").removeAttribute("disabled")
 			id("note").focus()
+			id("settings").className = ""
 			return applyDecrypt(package)
 
 		} else {
 			//mauvais password
 			id("note").setAttribute("disabled", "")
 			id("settings").className = "open"
+			id("password").value = ""
 			id("password").focus()
 
 			return "This note is protected by a password"
@@ -273,7 +276,7 @@ function toServer(data, filename, option) {
 
 				let response = xhr.responseText;
 
-				if (response) {
+				if (response && response !== "removed") {
 
 					id("note").value = decrypt(response)
 					alertCtrl("Received")

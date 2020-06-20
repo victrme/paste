@@ -79,7 +79,7 @@ function settings(option, newVal) {
 		}
 	}
 
-	function theme(color, init) {
+	function theme(color, event) {
 
 		function applyTheme(val) {
 
@@ -114,32 +114,29 @@ function settings(option, newVal) {
 			}
 		}
 
-		let l = storage("local");
+        let l = storage("local")
 
-		if (init) {
-			applyTheme(l.theme);
-		}
-		else {
-			applyTheme(color);
-			l.theme = color;
-			storage("local", l);
-		}
+        if (event) {
+            applyTheme(color)
+            l.theme = color
+            storage("local", l)
+        } else {
+            applyTheme(color)
+        }
 	}
 
-	function zoom(val, init) {
+	function zoom(val, event) {
 
 		let l = storage("local");
 
-		if (init) {
-
-			id("zoom").value = l.zoom;
-			document.body.style.zoom = l.zoom;
-
+		if (event) {
+            document.body.style.zoom = l.zoom
+            l.zoom = val
+			storage("local", l)
 		}
 		else {
+            id("zoom").value = l.zoom;
 			document.body.style.zoom = val;
-			l.zoom = val;
-			storage("local", l);
 		}
 	}
 
@@ -154,11 +151,11 @@ function settings(option, newVal) {
     else { //c'est init
 
         id("background").oninput = function () {
-            theme(this.value)
+            theme(this.value, true)
         }
     
         id("zoom").oninput = function () {
-            zoom(this.value)
+            zoom(this.value, true)
         }
     
     
@@ -171,10 +168,7 @@ function settings(option, newVal) {
             const dom = id('settings')
             dom.className = (dom.className !== "open" ? "open" : "")
         }
-    
-    
-        theme(null, true)
-        zoom(null, true)
+
         id("connected").className = "loaded"
     }
 }
