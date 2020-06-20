@@ -34,8 +34,9 @@ function storage(type, data) {
 				let x = {
 					user: "",
 					encoded: "",
-					filename: "",
-					theme: "",
+                    filename: "",
+                    password: false,
+                    theme: "",
 					zoom: 1
 				}
 				localStorage.paste = JSON.stringify(x);
@@ -109,7 +110,7 @@ function settings(option, newVal) {
 			if (textColor) {
 				document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val);
                 document.body.style.color = textColor;
-                id("background").value = l.theme;
+                id("background").value = val;
 			}
 		}
 

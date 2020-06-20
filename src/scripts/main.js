@@ -5,13 +5,14 @@ function removeUserData(local) {
 	local.filename = ""
 	storage("local", local)
 
+	id("note").removeAttribute("disabled")
+	id("password").value = ""
+	document.body.style = ""
+
 	sessionStorage.removeItem("paste");
 }
 
 function encrypt(message, user) {
-
-	//encode en premier si ya un password
-	message = password({is: "enc", note: message})
 
 	//encodage normal
 	let l = storage("local");
@@ -28,13 +29,16 @@ function encrypt(message, user) {
 		}
 	})
 
-	return package
+	//wrap le tout si ya un mdp
+
+	return password({is: "enc", note: package})
 }
 
 function decrypt(package) {
 
-	function versionControl(data) {
+	function applyDecrypt(data) {
 
+		//old version control
 		if (data.indexOf(",000000,") !== -1) {
 
 			let arr = data.split(",000000,")
@@ -50,41 +54,78 @@ function decrypt(package) {
 			data = JSON.parse(data)
 		}
 
-		return data
+		let l = storage("local")
+		let decrypted = ""
+		let key = CryptoJS.SHA3(l.user + data.ran).toString()
+
+		try {
+			decrypted = CryptoJS.AES.decrypt(atob(data.note), key)
+		} catch (error) {
+			console.warn("N'a pas pu déchiffrer")
+		}
+
+		//ajoute settings si jamais
+		if (data.settings.theme) settings("theme", data.settings.theme)
+		if (data.settings.zoom) settings("zoom", data.settings.zoom)
+
+		return decrypted.toString(CryptoJS.enc.Utf8)
 	}
-	
-	package = versionControl(package)
-	let l = storage("local");
-	let key = CryptoJS.SHA3(l.user + package.ran).toString()
 
-	if (package.settings.theme) settings("theme", package.settings.theme)
-	if (package.settings.zoom) settings("zoom", package.settings.zoom)
+	//password control
+	if (package.indexOf("yaunmdp") !== -1) {
 
-	//normal dechiffrage
-	let decrypted = CryptoJS.AES.decrypt(atob(package.note), key)
-	
-	//2e passage du mot de passe
-	decrypted = password({is: "dec", note: decrypted.toString(CryptoJS.enc.Utf8)})
+		package = password({is: "dec", note: package})
 
-	return decrypted
+		//si password est cool
+		if (package !== false) {
+
+			id("note").removeAttribute("disabled")
+			id("note").focus()
+			return applyDecrypt(package)
+
+		} else {
+			//mauvais password
+			id("note").setAttribute("disabled", "")
+			id("settings").className = "open"
+			id("password").focus()
+
+			return "This note is protected by a password"
+		}
+
+	} else {
+		//pas de password
+		return applyDecrypt(package)
+	}
 }
 
 function password(arg) {
 
 	const mdp = id("password").value
 
-	if (mdp === "") {
+	if (arg.is === "enc" && mdp === "") {
 		return arg.note
 	}
 
 	else if (arg.is === "enc") {
-		return CryptoJS.AES.encrypt(arg.note, mdp).toString()
+		return "yaunmdp" + btoa(CryptoJS.AES.encrypt(arg.note, mdp).toString())
 	}
 
 	else if (arg.is === "dec") {
 
-		const dec = CryptoJS.AES.decrypt(arg.note, mdp)
-		return dec.toString(CryptoJS.enc.Utf8)
+		let decrypted = false
+		arg.note = arg.note.replace("yaunmdp", "")
+
+		try {
+			decrypted = CryptoJS.AES
+				.decrypt(atob(arg.note), mdp)
+				.toString(CryptoJS.enc.Utf8)
+
+		} catch (error) {
+			console.warn("N'a pas pu déchiffrer")
+			decrypted = false
+		}
+
+		return decrypted
 	}
 }
 
@@ -97,9 +138,8 @@ function isLoggedIn() {
 	var l = storage("local");
 	var hash = window.location.hash.substr(1);
 
-	if (hash != "") {
+	if (hash !== "") {
 
-		removeUserData(l)
 		id("username").value = hash
 		login()
 
@@ -107,12 +147,12 @@ function isLoggedIn() {
 
 		if (l.user) {
 
-			getusername();
-			id("note").focus();
-			toServer("lol", l.filename, "read");
+			getusername()
+			id("note").focus()
+			toServer("lol", l.filename, "read")
 
 		} else {
-			login();
+			login()
 		}
 	}
 
@@ -134,8 +174,6 @@ function getusername(state, name) {
 }
 
 function login() {
-
-	var l = storage("local");
 
 	function filename(input) {
 		
@@ -162,9 +200,9 @@ function login() {
 		$(location).attr('href', window.location.pathname + "#" + plaintext)
 	}
 
-
 	//defini les variables
-	var user = $("#username").val();
+	let l = storage("local");
+	let user = id("username").value;
 	l.user = CryptoJS.SHA3(user).toString();
 
 	//ajoute username et enregistre
@@ -173,7 +211,7 @@ function login() {
 	storage("local", l);
 
 	//focus la note et refresh la note
-	$("#note").focus();
+	id("note").focus()
 	toServer("lol", l.filename, "read");
 }
 
@@ -210,41 +248,45 @@ function isTyping() {
     }, 700);
 }
 
-function toServer(data, fnam, func) {
+function toServer(data, filename, option) {
 
-	//assez moche
 	//data a envoyer, nom du fichier a localiser et la fonction a effectuer par le serveur
 	//si read, dechiffrer la note, alerter et enregistrer dans session
 
 	var xhr = new XMLHttpRequest(),
 		method = "POST",
-		url = "save.php";
+		url = "https://victor-azevedo.me/paste/save.php";
 
 	let send ="data="
-		+ (func === "read" ? "lol" : data)
-		+ "&fnam=" + fnam
-		+ "&func=" + func;
+		+ (option === "read" ? "lol" : data)
+		+ "&fnam=" + filename
+		+ "&func=" + option;
 
 	xhr.open(method, url, true);
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
 	xhr.onreadystatechange = function () {
-		if(xhr.readyState === 4 && xhr.status === 200) {
+
+		if (xhr.readyState === 4 && xhr.status === 200) {
 			
-			if (func === "read") {
+			if (option === "read") {
 
-				let rep = xhr.responseText;
+				let response = xhr.responseText;
 
-				$("#note").val(decrypt(rep));
-				alertCtrl("Received");
-				
-				var s = storage("session");
-				s.rece = rep;
-				storage("session", s);
+				if (response) {
+
+					id("note").value = decrypt(response)
+					alertCtrl("Received")
+					
+					let storagesession = storage("session")
+					storagesession.rece = response
+					storage("session", storagesession)
+				}
 			}
 		}
-	};
-	xhr.send(send);
+	}
+	
+	xhr.send(send)
 }
 
 function alertCtrl(state) {
@@ -286,16 +328,42 @@ window.onload = function() {
 	//les fameux paste et keypress
 	$("#note").on("paste", () => {
 		isTyping();
-	});
+	})
 
 	$("#note").keydown(() => {
 		isTyping();
-	});
+	})
 
-	//les boutons settings
 	id("refresh").onclick = function() {
 		alertCtrl("Refreshed !")
 		toServer("lol", storage("local").filename, "read")
+	}
+
+	id("password").onkeypress = function(e) {
+		
+		
+		let received = ""
+		let l = storage("local")
+
+		try {
+			received = JSON.parse(sessionStorage.paste).rece
+		} catch (error) {
+			console.warn("nothing received yet")
+		}
+
+		//quand on enter
+		if (e.keyCode === 13) {
+
+			l.password = (this.value !== "" ? true : false) //si mdp vide, false
+			storage("local", l)
+
+			//si 
+			if (!received) {
+				id("note").focus()	
+			} else {
+				id("note").value = decrypt(received)
+			}
+		}
 	}
 
 	isLoggedIn()
