@@ -1,50 +1,5 @@
 
-function storage(type, data) {
 
-	//initialise le storage de paste en mettant
-	//toute les variables dans un array "paste", dans local et session Storage
-
-	if (type == "session") {
-
-		if (data) {
-			sessionStorage.paste = JSON.stringify(data);
-		}
-		else {
-			if (sessionStorage.paste) {
-				return JSON.parse(sessionStorage.paste);
-			} else {
-				let x = {
-					sent: "",
-					rece: "",
-				}
-				sessionStorage.paste = JSON.stringify(x);
-				return JSON.parse(sessionStorage.paste);
-			}
-		}
-	}
-
-	if (type == "local") {
-		if (data) {
-			localStorage.paste = JSON.stringify(data);
-		}
-		else {
-
-			if (localStorage.paste) {
-				return JSON.parse(localStorage.paste);
-			} else {
-				let x = {
-					user: "",
-					encoded: "",
-					filename: "",
-					theme: "",
-					zoom: 1
-				}
-				localStorage.paste = JSON.stringify(x);
-				return JSON.parse(localStorage.paste);
-			}
-		}
-	}
-}
 
 function removeUserData(local) {
 	local.user = ""
@@ -57,42 +12,56 @@ function removeUserData(local) {
 
 function encrypt(message, user) {
 
-	//ran: calcul bien trop compliqué pour pas grand chose, sert d'IV à la clé d'encryption
-	//ajoute ran au hash user pour que le message soit toujours encrypté avec une clé differente
-	//encrypte avec le hash de ran + user, rajoute ran au debut du message encrypté
-	//ran peut être découvert, il randomise seulement un peu plus l'encryption
-
 	let l = storage("local");
 	let ran = (Math.floor((Math.random() + 1) * Math.pow(10, 15))).toString();
 	let key = CryptoJS.SHA3(user + ran).toString();
 	let encr = CryptoJS.AES.encrypt(message, key).toString();
 
-	let full = ran + ",000000," + btoa(encr) + (l.theme !== "" ? ",000000," + btoa(l.theme) : "");
+	const package = JSON.stringify({
+		ran: ran,
+		note: btoa(encr),
+		settings: {
+			theme: l.theme,
+			zoom: l.zoom
+		}
+	})
 
-	return full;
+	return package
 }
 
-function decrypt(message) {
+function decrypt(package) {
 
-	let l = storage("local");
-	//ajoute le random a la clé pour pouvoir déchiffrer
-	let arr = message.split(",000000,");
-	let key = CryptoJS.SHA3(l.user + arr[0]).toString();
+	if (package.indexOf(",000000,") !== -1) {
 
-	if (arr[2]) {
-		theme(atob(arr[2]))
+		let arr = package.split(",000000,")
+		package = {
+			ran: arr[0],
+			note: arr[1],
+			settings: {
+				theme: atob(arr[2]) || "",
+				zoom: null
+			}
+		}
+	} else {
+		package = JSON.parse(package)
 	}
+	
+	let l = storage("local");
+	let key = CryptoJS.SHA3(l.user + package.ran).toString()
+
+	if (package.settings.theme) settings("theme", package.settings.theme)
+	if (package.settings.zoom) settings("zoom", package.settings.zoom)
 
 	try {
-
-		let dec = CryptoJS.AES.decrypt(atob(arr[1]), key);
+	
+		const dec = CryptoJS.AES.decrypt(atob(package.note), key);
 		return dec.toString(CryptoJS.enc.Utf8)
 
 	} catch(e) {
 
 		//empeche d'envoyer un message d'erreur si le déchiffrage ne fonctionne pas
 		//pour eviter un leak ou truc du genre jsp
-		return "";
+		console.error(e)
 	}
 }
 
@@ -206,7 +175,7 @@ function isTyping() {
     	//si on supprime le contenu de #note, reset le fichier serveur en envoyant une string vide
     	//sinon envoyer la note encrypté
     	if (rawnote == "") {
-    		toServer("--", file, "send");
+    		toServer("removed", file, "send");
     	} else {
     		sstore.sent = encrypt(rawnote, user);
     		toServer(sstore.sent, file, "send");
@@ -269,131 +238,8 @@ function alertCtrl(state) {
 	}, 1000);
 }
 
-function theme(color, init) {
-
-	function applyTheme(val) {
-
-		function textColorSelection(hex) {
-			
-			if (hex.length === 3) {
-				hex = 
-					parseInt(hex[0]**2, 16)
-					+ parseInt(hex[1]**2, 16)
-					+ parseInt(hex[2]**2, 16)
-			}
-			else if (hex.length === 6) {
-				hex = 
-					parseInt(hex[0] + hex[1], 16)
-					+ parseInt(hex[2] + hex[3], 16)
-					+ parseInt(hex[4] + hex[5], 16)
-			}
-			else {
-				return false
-			}
-
-			return ((hex / 765) > .5 ? "black" : "white") 
-		}
-
-		let textColor = textColorSelection(val.replace("#", ""))
-
-		//doesnt apply colors that can't be contrasted properly
-		if (textColor) {
-			document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val)
-			document.body.style.color = textColor
-		}
-	}
-
-	let l = storage("local")
-
-	if (init) {
-
-		applyTheme(l.theme)
-		id("background").value = l.theme
-
-	} else {
-		applyTheme(color);
-		l.theme = color;
-		storage("local", l);
-	}
-}
-
-function settings() {
-
-	function erase() {
-
-		//envoie erase au serv, vide la note, efface le storage, retourne sur index
-	
-		function deleteAll() {
-	
-			let l = storage("local");
-			toServer("lol", l.filename, "erase");
-	
-			localStorage.removeItem("paste");
-			sessionStorage.removeItem("paste");
-	
-			location.replace("index.html");
-		}
-	
-		if (conf) {
-			clearTimeout(confTimer)
-			id('erase').innerText = "Erase from server"
-			conf = false
-			deleteAll()
-			
-		} else {
-			id('erase').innerText = "Are you sure ?"
-			conf = true
-			confTimer = setTimeout(function() {
-				id('erase').innerText = "Erase from server"
-				conf = false
-			}, 2000)
-		}
-	}
-
-	function zoom(val, init) {
-
-		let l = storage("local")
-
-		if (init) {
-
-			id("zoom").value = l.zoom
-			document.body.style.zoom = l.zoom
-
-		} else {
-			document.body.style.zoom = val
-			l.zoom = val
-			storage("local", l)
-		}
-	}
-
-	let conf = false, confTimer = 0
-	
-	id("background").oninput = function() {
-		theme(this.value)
-	}
-	
-	id("zoom").oninput = function() {
-		zoom(this.value)
-	}
-
-	id('erase').onclick = function() {
-		erase()
-	}
-
-	id('toSettings').onclick = function() {
-		//idk felt sexy, might delete later
-		const dom = id('settings')
-		dom.className = (dom.className !== "open" ? "open" : "")
-	}
-	
-	theme(null, true)
-	zoom(null, true)
-	id("connected").className = "loaded"
-}
-
 //globalooo
 let typingTimeout = 0, alertTimeout = 0
-const id = elem => document.getElementById(elem)
 const setuserinputwidth = (elem=id("username"), backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
 
 window.onload = function() {
@@ -428,7 +274,6 @@ window.onload = function() {
 		alertCtrl("Refreshed !")
 		toServer("lol", storage("local").filename, "read")
 	}
-
 
 	isLoggedIn()
 	settings()
