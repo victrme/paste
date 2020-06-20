@@ -1,6 +1,4 @@
 
-
-
 function removeUserData(local) {
 	local.user = ""
 	local.encoded = ""
@@ -12,6 +10,10 @@ function removeUserData(local) {
 
 function encrypt(message, user) {
 
+	//encode en premier si ya un password
+	message = password({is: "enc", note: message})
+
+	//encodage normal
 	let l = storage("local");
 	let ran = (Math.floor((Math.random() + 1) * Math.pow(10, 15))).toString();
 	let key = CryptoJS.SHA3(user + ran).toString();
@@ -31,37 +33,58 @@ function encrypt(message, user) {
 
 function decrypt(package) {
 
-	if (package.indexOf(",000000,") !== -1) {
+	function versionControl(data) {
 
-		let arr = package.split(",000000,")
-		package = {
-			ran: arr[0],
-			note: arr[1],
-			settings: {
-				theme: atob(arr[2]) || "",
-				zoom: null
+		if (data.indexOf(",000000,") !== -1) {
+
+			let arr = data.split(",000000,")
+			data = {
+				ran: arr[0],
+				note: arr[1],
+				settings: {
+					theme: atob(arr[2]) || "",
+					zoom: null
+				}
 			}
+		} else {
+			data = JSON.parse(data)
 		}
-	} else {
-		package = JSON.parse(package)
+
+		return data
 	}
 	
+	package = versionControl(package)
 	let l = storage("local");
 	let key = CryptoJS.SHA3(l.user + package.ran).toString()
 
 	if (package.settings.theme) settings("theme", package.settings.theme)
 	if (package.settings.zoom) settings("zoom", package.settings.zoom)
 
-	try {
+	//normal dechiffrage
+	let decrypted = CryptoJS.AES.decrypt(atob(package.note), key)
 	
-		const dec = CryptoJS.AES.decrypt(atob(package.note), key);
+	//2e passage du mot de passe
+	decrypted = password({is: "dec", note: decrypted.toString(CryptoJS.enc.Utf8)})
+
+	return decrypted
+}
+
+function password(arg) {
+
+	const mdp = id("password").value
+
+	if (mdp === "") {
+		return arg.note
+	}
+
+	else if (arg.is === "enc") {
+		return CryptoJS.AES.encrypt(arg.note, mdp).toString()
+	}
+
+	else if (arg.is === "dec") {
+
+		const dec = CryptoJS.AES.decrypt(arg.note, mdp)
 		return dec.toString(CryptoJS.enc.Utf8)
-
-	} catch(e) {
-
-		//empeche d'envoyer un message d'erreur si le déchiffrage ne fonctionne pas
-		//pour eviter un leak ou truc du genre jsp
-		console.error(e)
 	}
 }
 
@@ -278,4 +301,4 @@ window.onload = function() {
 	isLoggedIn()
 	settings()
 	setuserinputwidth()
-};
+}
