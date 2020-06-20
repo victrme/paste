@@ -87,15 +87,15 @@ function settings(option, newVal) {
 
 				if (hex.length === 3) {
 					hex =
-						parseInt(hex[0] ** 2, 16)
-						+ parseInt(hex[1] ** 2, 16)
-						+ parseInt(hex[2] ** 2, 16);
+						parseInt(hex[0], 16) ** 2
+						+ parseInt(hex[1], 16) ** 2
+						+ parseInt(hex[2], 16) ** 2
 				}
 				else if (hex.length === 6) {
 					hex =
 						parseInt(hex[0] + hex[1], 16)
 						+ parseInt(hex[2] + hex[3], 16)
-						+ parseInt(hex[4] + hex[5], 16);
+						+ parseInt(hex[4] + hex[5], 16)
 				}
 				else {
 					return false;
