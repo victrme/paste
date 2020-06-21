@@ -1,18 +1,4 @@
 
-function removeUserData(local) {
-	local.user = ""
-	local.encoded = ""
-	local.filename = ""
-	storage("local", local)
-
-	id("note").removeAttribute("disabled")
-	id("note").value = ""
-	id("password").value = ""
-	document.body.style = ""
-
-	sessionStorage.removeItem("paste");
-}
-
 function encrypt(message, user) {
 
 	//encodage normal
@@ -80,17 +66,17 @@ function decrypt(package) {
 		//si password est cool
 		if (package !== false) {
 
-			id("note").removeAttribute("disabled")
-			id("note").focus()
+			dom_note.removeAttribute("disabled")
+			dom_note.focus()
 			id("settings").className = ""
 			return applyDecrypt(package)
 
 		} else {
 			//mauvais password
-			id("note").setAttribute("disabled", "")
+			dom_note.setAttribute("disabled", "")
 			id("settings").className = "open"
-			id("password").value = ""
-			id("password").focus()
+			dom_password.value = ""
+			dom_password.focus()
 
 			return "This note is protected by a password"
 		}
@@ -103,7 +89,7 @@ function decrypt(package) {
 
 function password(arg) {
 
-	const mdp = id("password").value
+	const mdp = dom_password.value
 
 	if (arg.is === "enc" && mdp === "") {
 		return arg.note
@@ -143,7 +129,7 @@ function isLoggedIn() {
 
 	if (hash !== "") {
 
-		id("username").value = hash
+		dom_username.value = hash
 		login()
 
 	} else {
@@ -151,7 +137,7 @@ function isLoggedIn() {
 		if (l.user) {
 
 			getusername()
-			id("note").focus()
+			dom_note.focus()
 			toServer("lol", l.filename, "read")
 
 		} else {
@@ -172,8 +158,8 @@ function getusername(state, name) {
 	let dec = CryptoJS.AES.decrypt(atob(l.encoded), l.user);
 	dec = dec.toString(CryptoJS.enc.Utf8);
 
-	id("pattern").style.backgroundImage = GeoPattern.generate(dec).toDataUrl()
-	id("username").value = dec
+	dom_pattern.style.backgroundImage = GeoPattern.generate(dec).toDataUrl()
+	dom_username.value = dec
 }
 
 function login() {
@@ -199,13 +185,13 @@ function login() {
 
 		let enc = btoa(CryptoJS.AES.encrypt(plaintext, l.user).toString());
 		l.encoded = enc;
-		id("pattern").style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
+		dom_pattern.style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
 		window.location.href = window.location.pathname + "#" + plaintext
 	}
 
 	//defini les variables
 	let l = storage("local");
-	let user = id("username").value;
+	let user = dom_username.value;
 	l.user = CryptoJS.SHA3(user).toString();
 
 	//ajoute username et enregistre
@@ -214,69 +200,63 @@ function login() {
 	storage("local", l);
 
 	//focus la note et refresh la note
-	id("note").focus()
+	dom_note.focus()
 	toServer("lol", l.filename, "read");
 }
 
-function isTyping() {
+function updateNote() {
 
-	//commence un timer de .7s
-	//se reset a chaque keypress et enregistre la note si le timer est dépassé
+	let local = storage("local");
+	let session = storage("session");
 
-	var l = storage("local");
-	var user = l.user;
-	var file = l.filename;
-
-	alert("Typing...");
-
-    clearTimeout(typingTimeout);
-
-    typingTimeout = setTimeout(function() {
-
-    	let sstore = storage("session");
-    	let rawnote = id("note").value;
-
-    	//si on supprime le contenu de #note, reset le fichier serveur en envoyant une string vide
-    	//sinon envoyer la note encrypté
-    	if (rawnote == "") {
-    		toServer("", file, "send");
-    	} else {
-    		sstore.sent = encrypt(rawnote, user);
-    		toServer(sstore.sent, file, "send");
-    	}
-        
-        storage("session", sstore);
-		alert("Sent !");
-
-    }, 700);
+	if (dom_note.value == "") {
+		toServer("", local.filename, "send");
+	} else {
+		session.sent = encrypt(dom_note.value, local.user);
+		toServer(session.sent, local.filename, "send");
+	}
+	
+	storage("session", session)
+	alert("Sent !")
 }
 
 function toServer(data, filename, option) {
 
+	//listen
 	firebase.database().ref(filename).on('value', function(snapshot) {
 
-		id("note").value = decrypt(snapshot.val())
-		alert("Received !")
-		
-		let storagesession = storage("session")
-		storagesession.rece = snapshot.val()
-		storage("session", storagesession)
-		console.log(snapshot.val())
+		const read_val = snapshot.val()
+
+		if (read_val) {
+
+			dom_note.value = decrypt(read_val)
+			alert("Received !")
+
+			let storagesession = storage("session")
+			storagesession.rece = read_val
+			storage("session", storagesession)
+		}
+
+		console.log(read_val)
 	})
 
+	//updates
 	if (option === "send") {
 		firebase.database().ref(filename).set(data)
 	}
 
+	//read once
 	else if (option === "read") {
 
 		alert("Loading...")
 
 		return firebase.database().ref(filename).once('value').then(function(snapshot) {
-			decrypt(snapshot.val())
-		});
+
+			if (snapshot.val()) decrypt(snapshot.val())
+		})
 	}
 
+	//erase
 	else if (option === "erase") {
 		firebase.database().ref(filename).set(null)
 	}
@@ -294,12 +274,12 @@ function alert(state) {
 
 //globalooo
 let typingTimeout = 0, alertTimeout = 0
-const setuserinputwidth = (elem=id("username"), backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
+const setuserinputwidth = (elem=dom_username, backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
 
 window.onload = function() {
 
-	//quand on appuie sur entrée dans le username input
-	id("username").onkeydown = function(e) {
+	//main
+	dom_username.onkeydown = function(e) {
 
 		if (e.keyCode === 8) {
 			setuserinputwidth(this, true)
@@ -314,24 +294,28 @@ window.onload = function() {
 		}
 	}
 
-	//les fameux paste et keypress
-	// $("#note").on("paste", () => {
-	// 	isTyping();
-	// })
+	dom_note.onkeydown = function() {
+			
+		//commence un timer de .7s
+		//se reset a chaque keypress et enregistre la note si le timer est dépassé
 
-	id("note").onkeydown = function() {
-		isTyping()
+		alert("Typing...");
+		clearTimeout(typingTimeout);
+		typingTimeout = setTimeout(function() {
+			updateNote()
+		}, 700);
 	}
 
-	id("password").onkeypress = function(e) {
-		
+
+	//settings
+	dom_password.onkeypress = function(e) {
 		
 		let received = ""
 		let l = storage("local")
 
 		try {
 			received = JSON.parse(sessionStorage.paste).rece
-		} catch (error) {
+		} catch(e) {
 			console.warn("nothing received yet")
 		}
 
@@ -342,33 +326,24 @@ window.onload = function() {
 			storage("local", l)
 
 			//si 
-			if (!received) {
-				id("note").focus()	
-			} else {
-				id("note").value = decrypt(received)
-			}
+			(!received ? dom_note.focus() : dom_note.value = decrypt(received))
 		}
 	}
 
-	
-	//c'est init
-	id("background").oninput = function () {
+	dom_background.oninput = function () {
 		theme(this.value, true)
 	}
 
-	id("zoom").oninput = function () {
+	dom_zoom.oninput = function () {
 		zoom(this.value, true)
 	}
 
-
-	id('erase').onclick = function () {
+	dom_erase.onclick = function () {
 		erase()
 	}
 
 	id('toSettings').onclick = function () {
-		//idk felt sexy, might delete later
-		const dom = id('settings')
-		dom.className = (dom.className !== "open" ? "open" : "")
+		dom_settings.className = (dom_settings.className !== "open" ? "open" : "")
 	}
 
 	id("connected").className = "loaded"

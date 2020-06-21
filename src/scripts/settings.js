@@ -24,6 +24,7 @@ function storage(type, data) {
 
 	if (type == "local") {
 		if (data) {
+			console.log(data)
 			localStorage.paste = JSON.stringify(data);
 		}
 		else {
@@ -44,6 +45,20 @@ function storage(type, data) {
 			}
 		}
 	}
+}
+
+function removeUserData(local) {
+	local.user = ""
+	local.encoded = ""
+	local.filename = ""
+	storage("local", local)
+
+	dom_note.removeAttribute("disabled")
+	dom_note.value = ""
+	dom_password.value = ""
+	document.body.style = ""
+
+	sessionStorage.removeItem("paste");
 }
 
 function erase() {
@@ -113,16 +128,19 @@ function theme(color, event) {
 		if (textColor) {
 			document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val)
 			document.body.style.color = textColor
-			id("background").value = val
+			dom_background.value = val
 		}
 	}
 
 	let l = storage("local")
 
 	if (event) {
+
 		applyTheme(color)
 		l.theme = color
 		storage("local", l)
+
+
 	} else {
 		applyTheme(color)
 	}
@@ -138,14 +156,26 @@ function zoom(val, event) {
 		storage("local", l)
 	}
 	else {
-		id("zoom").value = l.zoom;
+		dom_zoom.value = l.zoom;
 		document.body.style.zoom = val;
 	}
 }
 
+
+// GLOBAL VAL INIT OH NO
+
 let conf = false, confTimer = 0;
 
 const id = elem => document.getElementById(elem)
+
+const dom_username = id("username"),
+	dom_note = id("note"),
+	dom_settings = id("settings"),
+	dom_password = id("password"),
+	dom_pattern = id("pattern"),
+	dom_background = id("background"),
+	dom_zoom = id("zoom"),
+	dom_erase = id("erase");
 
 let firebaseConfig = {
 	apiKey: "AIzaSyCVqSZy0y_nue8fBiU_bX1kI3Ltd76_ObM",
