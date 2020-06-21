@@ -82,8 +82,17 @@ header #pattern {
 	max-width: calc(7.15px * 32);
 }
 
+
+
 #alert {
 	line-height: 3em;
+	opacity: 0;
+	transition: opacity .15s;
+}
+
+#alert.visible {
+	opacity: 1;
+	transition: opacity .15s;
 }
 
 textarea {

@@ -66,8 +66,8 @@ function decrypt(package) {
 		}
 
 		//ajoute settings si jamais
-		if (data.settings.theme) settings("theme", data.settings.theme)
-		if (data.settings.zoom) settings("zoom", data.settings.zoom)
+		if (data.settings.theme) theme(data.settings.theme)
+		if (data.settings.zoom) zoom(data.settings.zoom)
 
 		return decrypted.toString(CryptoJS.enc.Utf8)
 	}
@@ -172,8 +172,8 @@ function getusername(state, name) {
 	let dec = CryptoJS.AES.decrypt(atob(l.encoded), l.user);
 	dec = dec.toString(CryptoJS.enc.Utf8);
 
-	$('#pattern').geopattern(dec);
-	$("#username").val(dec);
+	id("pattern").style.backgroundImage = GeoPattern.generate(dec).toDataUrl()
+	id("username").value = dec
 }
 
 function login() {
@@ -199,8 +199,8 @@ function login() {
 
 		let enc = btoa(CryptoJS.AES.encrypt(plaintext, l.user).toString());
 		l.encoded = enc;
-		$('#pattern').geopattern(plaintext);
-		$(location).attr('href', window.location.pathname + "#" + plaintext)
+		id("pattern").style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
+		window.location.href = window.location.pathname + "#" + plaintext
 	}
 
 	//defini les variables
@@ -227,38 +227,36 @@ function isTyping() {
 	var user = l.user;
 	var file = l.filename;
 
-	alertCtrl("Typing...");
+	alert("Typing...");
 
     clearTimeout(typingTimeout);
 
-    typingTimeout = setTimeout(function () {
+    typingTimeout = setTimeout(function() {
 
     	let sstore = storage("session");
-    	let rawnote = $("#note").val();
+    	let rawnote = id("note").value;
 
     	//si on supprime le contenu de #note, reset le fichier serveur en envoyant une string vide
     	//sinon envoyer la note encrypté
     	if (rawnote == "") {
-    		toServer("removed", file, "send");
+    		toServer("", file, "send");
     	} else {
     		sstore.sent = encrypt(rawnote, user);
     		toServer(sstore.sent, file, "send");
     	}
         
         storage("session", sstore);
-		alertCtrl("Sent !");
+		alert("Sent !");
 
     }, 700);
 }
 
 function toServer(data, filename, option) {
 
-	const pasteRef = firebase.database().ref(filename)
-
-	pasteRef.on('value', function(snapshot) {
+	firebase.database().ref(filename).on('value', function(snapshot) {
 
 		id("note").value = decrypt(snapshot.val())
-		alertCtrl("Received")
+		alert("Received !")
 		
 		let storagesession = storage("session")
 		storagesession.rece = snapshot.val()
@@ -271,25 +269,27 @@ function toServer(data, filename, option) {
 	}
 
 	else if (option === "read") {
+
+		alert("Loading...")
+
 		return firebase.database().ref(filename).once('value').then(function(snapshot) {
-			console.log(snapshot.val())
 			decrypt(snapshot.val())
 		});
 	}
+
+	else if (option === "erase") {
+		firebase.database().ref(filename).set(null)
+	}
 }
 
-function alertCtrl(state) {
+function alert(state) {
 
-	//la petite popup pour dire qu'une action a été effectué
+	clearTimeout(alertTimeout)
+	const alert = id("alert")
+	alert.innerText = state
 
-	clearTimeout(alertTimeout);
-	var a = $("#alert");
-	a.html(state);
-
-	a.css("opacity", 1);
-	alertTimeout = setTimeout(function() {
-		a.css("opacity", 0);
-	}, 1000);
+	alert.className = "visible"
+	alertTimeout = setTimeout(function() {alert.className = ""}, 1000)
 }
 
 //globalooo
@@ -315,18 +315,13 @@ window.onload = function() {
 	}
 
 	//les fameux paste et keypress
-	$("#note").on("paste", () => {
-		isTyping();
-	})
+	// $("#note").on("paste", () => {
+	// 	isTyping();
+	// })
 
-	$("#note").keydown(() => {
-		isTyping();
-	})
-
-	// id("refresh").onclick = function() {
-	// 	alertCtrl("Refreshed !")
-	// 	toServer("lol", storage("local").filename, "read")
-	// }
+	id("note").onkeydown = function() {
+		isTyping()
+	}
 
 	id("password").onkeypress = function(e) {
 		
@@ -355,7 +350,29 @@ window.onload = function() {
 		}
 	}
 
+	
+	//c'est init
+	id("background").oninput = function () {
+		theme(this.value, true)
+	}
+
+	id("zoom").oninput = function () {
+		zoom(this.value, true)
+	}
+
+
+	id('erase').onclick = function () {
+		erase()
+	}
+
+	id('toSettings').onclick = function () {
+		//idk felt sexy, might delete later
+		const dom = id('settings')
+		dom.className = (dom.className !== "open" ? "open" : "")
+	}
+
+	id("connected").className = "loaded"
+
 	isLoggedIn()
-	settings()
 	setuserinputwidth()
 }
