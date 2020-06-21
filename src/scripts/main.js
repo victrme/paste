@@ -253,43 +253,29 @@ function isTyping() {
 
 function toServer(data, filename, option) {
 
-	//data a envoyer, nom du fichier a localiser et la fonction a effectuer par le serveur
-	//si read, dechiffrer la note, alerter et enregistrer dans session
+	const pasteRef = firebase.database().ref(filename)
 
-	var xhr = new XMLHttpRequest(),
-		method = "POST",
-		url = "https://victor-azevedo.me/paste/save.php";
+	pasteRef.on('value', function(snapshot) {
 
-	let send ="data="
-		+ (option === "read" ? "lol" : data)
-		+ "&fnam=" + filename
-		+ "&func=" + option;
+		id("note").value = decrypt(snapshot.val())
+		alertCtrl("Received")
+		
+		let storagesession = storage("session")
+		storagesession.rece = snapshot.val()
+		storage("session", storagesession)
+		console.log(snapshot.val())
+	})
 
-	xhr.open(method, url, true);
-	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-	xhr.onreadystatechange = function () {
-
-		if (xhr.readyState === 4 && xhr.status === 200) {
-			
-			if (option === "read") {
-
-				let response = xhr.responseText;
-
-				if (response && response !== "removed") {
-
-					id("note").value = decrypt(response)
-					alertCtrl("Received")
-					
-					let storagesession = storage("session")
-					storagesession.rece = response
-					storage("session", storagesession)
-				}
-			}
-		}
+	if (option === "send") {
+		firebase.database().ref(filename).set(data)
 	}
-	
-	xhr.send(send)
+
+	else if (option === "read") {
+		return firebase.database().ref(filename).once('value').then(function(snapshot) {
+			console.log(snapshot.val())
+			decrypt(snapshot.val())
+		});
+	}
 }
 
 function alertCtrl(state) {
@@ -337,10 +323,10 @@ window.onload = function() {
 		isTyping();
 	})
 
-	id("refresh").onclick = function() {
-		alertCtrl("Refreshed !")
-		toServer("lol", storage("local").filename, "read")
-	}
+	// id("refresh").onclick = function() {
+	// 	alertCtrl("Refreshed !")
+	// 	toServer("lol", storage("local").filename, "read")
+	// }
 
 	id("password").onkeypress = function(e) {
 		

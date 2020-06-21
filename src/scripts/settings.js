@@ -179,3 +179,17 @@ function settings(option, newVal) {
 }
 
 const id = elem => document.getElementById(elem)
+
+let firebaseConfig = {
+	apiKey: "AIzaSyCVqSZy0y_nue8fBiU_bX1kI3Ltd76_ObM",
+	authDomain: "paste-test-6969.firebaseapp.com",
+	databaseURL: "https://paste-test-6969.firebaseio.com",
+	projectId: "paste-test-6969",
+	storageBucket: "paste-test-6969.appspot.com",
+	messagingSenderId: "587142456017",
+	appId: "1:587142456017:web:99cf4b1e0eb2b8fcfb9bf0"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig)
+let database = firebase.database()

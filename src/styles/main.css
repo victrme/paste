@@ -29,7 +29,7 @@ input {
 #connected {
 	position: relative;
 	width: 100%;
-	max-width: 800px;
+	max-width: 700px;
 	margin: auto;
 	opacity: 0;
 	transition: opacity .1s;
@@ -89,9 +89,9 @@ header #pattern {
 textarea {
 	display: block;
 	border: 0;
-	width: calc(100% - 2em);
-	height: 50vh;
-	min-height: 200px;
+	width: calc(100% - 4em);
+	height: 30em;
+	min-height: 5em;
 	margin: auto;
 	padding: 2em;
 	font-size: 1em;
@@ -107,7 +107,7 @@ textarea {
 #settings {
 	width: 100%;
 	display: flex;
-	justify-content: flex-start;
+	justify-content: space-between;
 	padding-top: 0;
 	max-height: 0;
 	overflow: hidden;
@@ -136,7 +136,6 @@ textarea {
 	}
 
 	#settings {
-		justify-content: space-between;
 		align-items: flex-start;
 	}
 

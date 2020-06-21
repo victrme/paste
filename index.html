@@ -14,16 +14,10 @@
 	<meta name="application-name" content="Pastes">
 	<meta name="msapplication-TileColor" content="#603cba">
 	<meta name="theme-color" content="#3a3633">
-	
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
-	
+
 	<!-- Minify this -->
 	<link rel="stylesheet" type="text/css" href="src/styles/main.css">
 	<link rel="stylesheet" type="text/css" href="" id="theme">
-	<script src="src/scripts/settings.js"></script>
-	<script src="src/scripts/main.js"></script>
 	
 </head>
 <body>
@@ -33,7 +27,7 @@
 				<div class="user">
 					<div id="pattern"></div>
 					<input id="username" type="text" name="username" placeholder="username">
-					<button id="refresh" class="submit">&#x21bb;</button>
+					<!-- <button id="refresh" class="submit">&#x21bb;</button> -->
 				</div>
 				<span id="alert"></span>
 				<button id="toSettings">settings</button>
@@ -57,5 +51,21 @@
 			
 		<textarea id="note" placeholder="Write your paste here"></textarea>
 	</div>
+
+	<!-- random cdns -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+
+	<!-- firebase stuff -->
+	<script src="https://www.gstatic.com/firebasejs/7.15.3/firebase-app.js"></script>
+  	<script src="https://www.gstatic.com/firebasejs/7.15.3/firebase-analytics.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/7.15.3/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/7.15.3/firebase-database.js"></script>
+
+	  
+	<!-- my stuff -->
+	<script src="src/scripts/settings.js"></script>
+	<script src="src/scripts/main.js"></script>
 </body>
 </html>
