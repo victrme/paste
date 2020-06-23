@@ -61,6 +61,12 @@ function removeUserData(local) {
 	sessionStorage.removeItem("paste");
 }
 
+function resetPaste() {
+	dom_pattern.style.backgroundImage = GeoPattern.generate("").toDataUrl()
+	removeUserData(storage("local"))
+	document.querySelector("header").className = ""
+}
+
 function erase() {
 	//envoie erase au serv, vide la note, efface le storage, retourne sur index
 
@@ -139,7 +145,7 @@ function theme(color, event) {
 		applyTheme(color)
 		l.theme = color
 		storage("local", l)
-
+		updateNote()
 
 	} else {
 		applyTheme(color)

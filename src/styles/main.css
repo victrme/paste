@@ -26,7 +26,7 @@ input {
 	background-color: rgba(20,20,20,.0);
 }
 
-#connected {
+#wrap {
 	position: relative;
 	width: 100%;
 	max-width: 700px;
@@ -35,7 +35,7 @@ input {
 	transition: opacity .1s;
 }
 
-#connected.loaded {
+#wrap.loaded {
 	opacity: 1;
 	transition: opacity .1s;
 }
@@ -66,8 +66,6 @@ header > div > .user {
 }
 
 
-
-
 header #pattern {
 	width: 3em;
 	height: 3em;
@@ -84,12 +82,20 @@ header #pattern {
 
 
 
+
+
+
+
+
+#alert {line-height: 3em;}
+
+header #toSettings,
 #alert {
-	line-height: 3em;
 	opacity: 0;
 	transition: opacity .15s;
 }
 
+header.connected #toSettings,
 #alert.visible {
 	opacity: 1;
 	transition: opacity .15s;

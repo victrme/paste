@@ -3,7 +3,7 @@ function encrypt(message, user) {
 
 	//encodage normal
 	let l = storage("local");
-	let ran = (Math.floor((Math.random() + 1) * Math.pow(10, 15))).toString();
+	let ran = Date.now().toString();
 	let key = CryptoJS.SHA3(user + ran).toString();
 	let encr = CryptoJS.AES.encrypt(message, key).toString();
 
@@ -124,28 +124,43 @@ function isLoggedIn() {
 	//si oui on affiche le username, cherche la note et affiche
 	//si non on enleve le username present pour pas d'ambiguité
 
-	var l = storage("local");
-	var hash = window.location.hash.substr(1);
+	function cacheControl() {
+		
+		if (s.sent || s.rece) {
 
-	if (hash !== "") {
+			let sentTime = 0, receTime = 0;
 
-		dom_username.value = hash
-		login()
-
-	} else {
-
-		if (l.user) {
-
-			getusername()
-			dom_note.focus()
-			toServer("lol", l.filename, "read")
-
-		} else {
-			login()
+			//omg
+			if (s.sent !== "" && s.rece === "") decrypt(s.sent)
+			else if (s.sent === "" && s.rece !== "") decrypt(s.rece)
+			else if (s.sent !== "" && s.rece !== "") {
+				sentTime = JSON.parse(s.sent).ran
+				receTime = JSON.parse(s.rece).ran
+				dom_note.value = decrypt((sentTime > receTime ? s.sent : s.rece))
+			}
 		}
 	}
 
+	let l = storage("local");
+	let s = storage("session");
+	let hash = window.location.hash.substr(1);
+
+	cacheControl()
 	
+
+	if (hash !== "") {
+		dom_username.value = hash
+		login()
+	}
+	else if (l.user && l.filename !== "9e50bb628aacc742") {
+
+		getusername()
+		dom_note.focus()
+		toServer("lol", l.filename, "read")
+	}
+	else {
+		resetPaste()
+	}
 }
 
 function getusername(state, name) {
@@ -175,6 +190,9 @@ function login() {
 			fn = CryptoJS.SHA3(fn, { outputLength: 64 }).toString();
 
 			l.filename = fn;
+			return fn
+		} else {
+			return l.filename
 		}
 	}
 
@@ -191,39 +209,17 @@ function login() {
 
 	//defini les variables
 	let l = storage("local");
-	let user = dom_username.value;
-	l.user = CryptoJS.SHA3(user).toString();
+	let user = CryptoJS.SHA3(dom_username.value).toString();
+	let fileName = filename(user);
 
 	//ajoute username et enregistre
-	filename(l.user);
-	setusername(user);
-	storage("local", l);
+	setusername(dom_username.value);
 
 	//focus la note et refresh la note
 	dom_note.focus()
-	toServer("lol", l.filename, "read");
-}
-
-function updateNote() {
-
-	let local = storage("local");
-	let session = storage("session");
-
-	if (dom_note.value == "") {
-		toServer("", local.filename, "send");
-	} else {
-		session.sent = encrypt(dom_note.value, local.user);
-		toServer(session.sent, local.filename, "send");
-	}
-	
-	storage("session", session)
-	alert("Sent !")
-}
-
-function toServer(data, filename, option) {
 
 	//listen
-	firebase.database().ref(filename).on('value', function(snapshot) {
+	firebase.database().ref(fileName).on('value', function(snapshot) {
 
 		const read_val = snapshot.val()
 
@@ -239,6 +235,33 @@ function toServer(data, filename, option) {
 
 		console.log(read_val)
 	})
+
+	//to storage
+	l.fileName = fileName
+	l.user = user
+	storage("local", l);
+
+	document.querySelector("header").className = "connected"
+}
+
+function updateNote() {
+
+	let local = storage("local");
+	let session = storage("session");
+
+	if (dom_note.value === "") {
+		session.sent = "";
+		toServer(null, local.filename, "send");
+	} else {
+		session.sent = encrypt(dom_note.value, local.user);
+		toServer(session.sent, local.filename, "send");
+		alert("Sent")
+	}
+
+	storage("session", session)
+}
+
+function toServer(data, filename, option) {
 
 	//updates
 	if (option === "send") {
@@ -272,6 +295,7 @@ function alert(state) {
 	alertTimeout = setTimeout(function() {alert.className = ""}, 1000)
 }
 
+
 //globalooo
 let typingTimeout = 0, alertTimeout = 0
 const setuserinputwidth = (elem=dom_username, backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
@@ -279,19 +303,23 @@ const setuserinputwidth = (elem=dom_username, backspace) => elem.style.width = `
 window.onload = function() {
 
 	//main
-	dom_username.onkeydown = function(e) {
+	dom_username.onkeypress = function(e) {
 
-		if (e.keyCode === 8) {
-			setuserinputwidth(this, true)
-		}
+		//backspace
+		if (e.keyCode === 8) setuserinputwidth(this, true)
+
+		//enter
 		else if (e.keyCode === 13) {
-			removeUserData(storage("local"));
-			login();
-			return false;
+
+			if (this.value === "") {
+				resetPaste()
+			} else {
+				removeUserData(storage("local"))
+				login()
+			}
 		}
-		else {
-			setuserinputwidth(this)
-		}
+		
+		else setuserinputwidth(this)
 	}
 
 	dom_note.onkeydown = function() {
@@ -322,7 +350,7 @@ window.onload = function() {
 		//quand on enter
 		if (e.keyCode === 13) {
 
-			l.password = (this.value !== "" ? true : false) //si mdp vide, false
+			l.password = this.value !== "" //si mdp vide, false
 			storage("local", l)
 
 			//si 
@@ -346,7 +374,7 @@ window.onload = function() {
 		dom_settings.className = (dom_settings.className !== "open" ? "open" : "")
 	}
 
-	id("connected").className = "loaded"
+	id("wrap").className = "loaded"
 
 	isLoggedIn()
 	setuserinputwidth()
