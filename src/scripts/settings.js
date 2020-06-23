@@ -64,6 +64,7 @@ function removeUserData(local) {
 function resetPaste() {
 	dom_pattern.style.backgroundImage = GeoPattern.generate("").toDataUrl()
 	removeUserData(storage("local"))
+	dom_settings.className = ""
 	document.querySelector("header").className = ""
 }
 
@@ -145,7 +146,7 @@ function theme(color, event) {
 		applyTheme(color)
 		l.theme = color
 		storage("local", l)
-		updateNote()
+		typingWait(updateNote)
 
 	} else {
 		applyTheme(color)
@@ -160,6 +161,8 @@ function zoom(val, event) {
 		document.body.style.zoom = l.zoom
 		l.zoom = val
 		storage("local", l)
+
+		typingWait(updateNote)
 	}
 	else {
 		dom_zoom.value = l.zoom;
@@ -170,9 +173,11 @@ function zoom(val, event) {
 
 // GLOBAL VAL INIT OH NO
 
-let conf = false, confTimer = 0;
-
 const id = elem => document.getElementById(elem)
+
+let conf = false,
+	confTimer = 0,
+	typingTimeout = 0;
 
 const dom_username = id("username"),
 	dom_note = id("note"),
@@ -182,6 +187,37 @@ const dom_username = id("username"),
 	dom_background = id("background"),
 	dom_zoom = id("zoom"),
 	dom_erase = id("erase");
+
+const typingWait = callback => {
+
+	//commence un timer de .7s
+	clearTimeout(typingTimeout);
+	typingTimeout = setTimeout(function() {
+		callback()
+	}, 700);
+}
+
+const captchaTest = callback => {
+
+	grecaptcha.ready(function() {
+		grecaptcha.execute(atob("NkxmdWthZ1pBQUFBQUtpZjU1YU1YMGZEaUEyV1lHMWF2RmxOWXZIaA=="), {action: 'submit'}).then(function(token) {
+
+			let xhttp = new XMLHttpRequest();
+
+			xhttp.open("POST", "captcha.php", true)
+			xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					if (this.responseText === "not a bot") {
+						callback()
+					}
+				}
+			}
+			
+			xhttp.send("token=" + token)
+		})
+	})
+}
 
 let firebaseConfig = {
 	apiKey: "AIzaSyCVqSZy0y_nue8fBiU_bX1kI3Ltd76_ObM",

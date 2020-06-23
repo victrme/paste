@@ -179,69 +179,72 @@ function getusername(state, name) {
 
 function login() {
 
-	function filename(input) {
+	captchaTest(() => {
 		
-		//prend les 64 premiers char de user, les hash, en prend 64 sur 256
-		//devient le nom du fichier a sauvegarder, differant du nom d'utilisateur
-
-		if (!l.filename) {
-
-			let fn = input.substring(0, 64);
-			fn = CryptoJS.SHA3(fn, { outputLength: 64 }).toString();
-
-			l.filename = fn;
-			return fn
-		} else {
-			return l.filename
+		function filename(input) {
+		
+			//prend les 64 premiers char de user, les hash, en prend 64 sur 256
+			//devient le nom du fichier a sauvegarder, differant du nom d'utilisateur
+	
+			if (!l.filename) {
+	
+				let fn = input.substring(0, 64);
+				fn = CryptoJS.SHA3(fn, { outputLength: 64 }).toString();
+	
+				l.filename = fn;
+				return fn
+			} else {
+				return l.filename
+			}
 		}
-	}
-
-	function setusername(plaintext) {
-
-		//encode le username
-		//affiche le header geopattern
-
-		let enc = btoa(CryptoJS.AES.encrypt(plaintext, l.user).toString());
-		l.encoded = enc;
-		dom_pattern.style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
-		window.location.href = window.location.pathname + "#" + plaintext
-	}
-
-	//defini les variables
-	let l = storage("local");
-	let user = CryptoJS.SHA3(dom_username.value).toString();
-	let fileName = filename(user);
-
-	//ajoute username et enregistre
-	setusername(dom_username.value);
-
-	//focus la note et refresh la note
-	dom_note.focus()
-
-	//listen
-	firebase.database().ref(fileName).on('value', function(snapshot) {
-
-		const read_val = snapshot.val()
-
-		if (read_val) {
-
-			dom_note.value = decrypt(read_val)
-			alert("Received !")
-
-			let storagesession = storage("session")
-			storagesession.rece = read_val
-			storage("session", storagesession)
+	
+		function setusername(plaintext) {
+	
+			//encode le username
+			//affiche le header geopattern
+	
+			let enc = btoa(CryptoJS.AES.encrypt(plaintext, l.user).toString());
+			l.encoded = enc;
+			dom_pattern.style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
+			window.location.href = window.location.pathname + "#" + plaintext
 		}
-
-		console.log(read_val)
+	
+		//defini les variables
+		let l = storage("local");
+		let user = CryptoJS.SHA3(dom_username.value).toString();
+		let fileName = filename(user);
+	
+		//ajoute username et enregistre
+		setusername(dom_username.value);
+	
+		//focus la note et refresh la note
+		dom_note.focus()
+	
+		//listen
+		firebase.database().ref(fileName).on('value', function(snapshot) {
+	
+			const read_val = snapshot.val()
+	
+			if (read_val) {
+	
+				dom_note.value = decrypt(read_val)
+				alert("Received !")
+	
+				let storagesession = storage("session")
+				storagesession.rece = read_val
+				storage("session", storagesession)
+			}
+	
+			console.log(read_val)
+		})
+	
+		//to storage
+		l.fileName = fileName
+		l.user = user
+		storage("local", l);
+	
+		document.querySelector("header").className = "connected"
 	})
-
-	//to storage
-	l.fileName = fileName
-	l.user = user
-	storage("local", l);
-
-	document.querySelector("header").className = "connected"
 }
 
 function updateNote() {
@@ -297,7 +300,7 @@ function alert(state) {
 
 
 //globalooo
-let typingTimeout = 0, alertTimeout = 0
+let alertTimeout = 0
 const setuserinputwidth = (elem=dom_username, backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
 
 window.onload = function() {
@@ -323,15 +326,7 @@ window.onload = function() {
 	}
 
 	dom_note.onkeydown = function() {
-			
-		//commence un timer de .7s
-		//se reset a chaque keypress et enregistre la note si le timer est dépassé
-
-		alert("Typing...");
-		clearTimeout(typingTimeout);
-		typingTimeout = setTimeout(function() {
-			updateNote()
-		}, 700);
+		typingWait(updateNote)
 	}
 
 

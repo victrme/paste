@@ -80,23 +80,18 @@ header #pattern {
 	max-width: calc(7.15px * 32);
 }
 
-
-
-
-
-
-
-
 #alert {line-height: 3em;}
 
 header #toSettings,
 #alert {
+	visibility: hidden;
 	opacity: 0;
 	transition: opacity .15s;
 }
 
 header.connected #toSettings,
 #alert.visible {
+	visibility: visible;
 	opacity: 1;
 	transition: opacity .15s;
 }
@@ -143,6 +138,20 @@ textarea {
 #settings input {
 	max-width: 80px;
 }
+
+
+
+
+
+
+
+.grecaptcha-badge {
+	visibility: hidden;
+}
+
+
+
+
 
 @media only screen and (max-width: 750px) {
 
