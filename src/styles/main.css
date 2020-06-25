@@ -9,7 +9,7 @@ body {
 	transition: background .2s, color .2s, zoom .2s;
 }
 
-button, a, input, textarea {color: inherit}
+button, a, input, textarea {color: inherit; font-size: inherit;}
 
 input::placeholder,
 textarea::placeholder {

@@ -1,15 +1,14 @@
 
 function encrypt(message, user) {
 
-	//encodage normal
 	let l = storage("local");
-	let ran = Date.now().toString();
-	let key = CryptoJS.SHA3(user + ran).toString();
-	let encr = CryptoJS.AES.encrypt(message, key).toString();
+	let ran = Date.now().toString();									//IV is ran: now()
+	let key = CryptoJS.SHA3(user + ran).toString();						//key is long user + IV
+	let encr = CryptoJS.AES.encrypt(message, key).toString();		//first base64 wrap
 
 	const package = JSON.stringify({
 		ran: ran,
-		note: btoa(encr),
+		note: btoa(encr),												//second base64 wrap for sending encrypted note
 		settings: {
 			theme: l.theme,
 			zoom: l.zoom
@@ -17,7 +16,6 @@ function encrypt(message, user) {
 	})
 
 	//wrap le tout si ya un mdp
-
 	return password({is: "enc", note: package})
 }
 
@@ -25,7 +23,7 @@ function decrypt(package) {
 
 	function applyDecrypt(data) {
 
-		//old version control
+		//old control
 		if (data.indexOf(",000000,") !== -1) {
 
 			let arr = data.split(",000000,")
@@ -40,22 +38,31 @@ function decrypt(package) {
 		} else {
 			data = JSON.parse(data)
 		}
-
+		
+		//init values
 		let l = storage("local")
 		let decrypted = ""
 		let key = CryptoJS.SHA3(l.user + data.ran).toString()
 
+		//note decryption
 		try {
-			decrypted = CryptoJS.AES.decrypt(atob(data.note), key)
-		} catch (error) {
-			console.warn("N'a pas pu déchiffrer")
+			decrypted = CryptoJS.AES.decrypt(atob(data.note), key).toString(CryptoJS.enc.Utf8)
+		} catch(e) {
+			console.warn(e)
+			return false
 		}
+		
+		//settings update
+		theme(!data.settings.theme ? "#000" : data.settings.theme)
+		zoom(!data.settings.zoom ? 12 : data.settings.zoom) 
 
-		//ajoute settings si jamais
-		if (data.settings.theme) theme(data.settings.theme)
-		if (data.settings.zoom) zoom(data.settings.zoom)
+		l.theme = data.settings.theme
+		l.zoom = data.settings.zoom
 
-		return decrypted.toString(CryptoJS.enc.Utf8)
+		storage("local", l)
+		
+		//after settings update
+		return decrypted
 	}
 
 	//password control
@@ -150,7 +157,7 @@ function isLoggedIn() {
 
 	if (hash !== "") {
 		dom_username.value = hash
-		login()
+		login(true)
 	}
 	else if (l.user && l.filename !== "9e50bb628aacc742") {
 
@@ -186,15 +193,15 @@ function login() {
 			//prend les 64 premiers char de user, les hash, en prend 64 sur 256
 			//devient le nom du fichier a sauvegarder, differant du nom d'utilisateur
 	
-			if (!l.filename) {
+			if (!local.filename) {
 	
 				let fn = input.substring(0, 64);
 				fn = CryptoJS.SHA3(fn, { outputLength: 64 }).toString();
 	
-				l.filename = fn;
+				local.filename = fn;
 				return fn
 			} else {
-				return l.filename
+				return local.filename
 			}
 		}
 	
@@ -203,14 +210,14 @@ function login() {
 			//encode le username
 			//affiche le header geopattern
 	
-			let enc = btoa(CryptoJS.AES.encrypt(plaintext, l.user).toString());
-			l.encoded = enc;
+			let enc = btoa(CryptoJS.AES.encrypt(plaintext, local.user).toString());
+			local.encoded = enc;
 			dom_pattern.style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
 			window.location.href = window.location.pathname + "#" + plaintext
 		}
 	
 		//defini les variables
-		let l = storage("local");
+		let local = storage("local");
 		let user = CryptoJS.SHA3(dom_username.value).toString();
 		let fileName = filename(user);
 	
@@ -219,31 +226,42 @@ function login() {
 	
 		//focus la note et refresh la note
 		dom_note.focus()
+
+		//removes previous listener
+		if (dbref) {
+			dbref.off();
+		}
 	
 		//listen
-		firebase.database().ref(fileName).on('value', function(snapshot) {
+		dbref = firebase.database().ref(fileName)
+
+		dbref.on('value', function(snapshot) {
 	
 			const read_val = snapshot.val()
+			const session = storage("session")
+			const sameNote = (read_val && read_val === session.sent)
+			const sameFile = (fileName && fileName === local.filename)
 	
-			if (read_val) {
+			if (initlistener || !sameNote && sameFile) {
 	
 				dom_note.value = decrypt(read_val)
+				session.rece = read_val
+				storage("session", session)
 				alert("Received !")
-	
-				let storagesession = storage("session")
-				storagesession.rece = read_val
-				storage("session", storagesession)
+
+				initlistener = false
 			}
 	
-			console.log(read_val)
+			console.log("from firebase listen: ", read_val)
 		})
 	
 		//to storage
-		l.fileName = fileName
-		l.user = user
-		storage("local", l);
+		local.fileName = fileName
+		local.user = user
+		storage("local", local);
 	
 		document.querySelector("header").className = "connected"
+		setUserInputWidth()
 	})
 }
 
@@ -252,16 +270,11 @@ function updateNote() {
 	let local = storage("local");
 	let session = storage("session");
 
-	if (dom_note.value === "") {
-		session.sent = "";
-		toServer(null, local.filename, "send");
-	} else {
-		session.sent = encrypt(dom_note.value, local.user);
-		toServer(session.sent, local.filename, "send");
-		alert("Sent")
-	}
+	session.sent = encrypt(dom_note.value, local.user);
+	storage("session", session);
 
-	storage("session", session)
+	toServer(session.sent, local.filename, "send");
+	alert("Sent")
 }
 
 function toServer(data, filename, option) {
@@ -277,7 +290,6 @@ function toServer(data, filename, option) {
 		alert("Loading...")
 
 		return firebase.database().ref(filename).once('value').then(function(snapshot) {
-
 			if (snapshot.val()) decrypt(snapshot.val())
 		})
 	}
@@ -301,15 +313,29 @@ function alert(state) {
 
 //globalooo
 let alertTimeout = 0
-const setuserinputwidth = (elem=dom_username, backspace) => elem.style.width = `calc(7.2px * ${elem.value.length + (backspace ? 0 : 2)})`
 
-window.onload = function() {
+const setUserInputWidth = (backspace) => {
+
+	let fontsize = parseInt(document.body.style.fontSize) || 12
+	let valueLength = dom_username.value.length + (backspace ? 0 : 2)
+	let inputwidth = (fontsize * .59) * valueLength
+
+	if (inputwidth < fontsize * 8) inputwidth = fontsize * 8
+
+	console.log(inputwidth)
+	
+	dom_username.style.width = inputwidth + "px"
+}
+
+const events = () => {
 
 	//main
-	dom_username.onkeypress = function(e) {
+	dom_username.onkeydown = function(e) {
 
 		//backspace
-		if (e.keyCode === 8) setuserinputwidth(this, true)
+		if (e.keyCode === 8) {
+			setUserInputWidth(true)
+		}
 
 		//enter
 		else if (e.keyCode === 13) {
@@ -322,7 +348,7 @@ window.onload = function() {
 			}
 		}
 		
-		else setuserinputwidth(this)
+		else setUserInputWidth()
 	}
 
 	dom_note.onkeydown = function() {
@@ -353,24 +379,28 @@ window.onload = function() {
 		}
 	}
 
-	dom_background.oninput = function () {
+	dom_background.oninput = function() {
 		theme(this.value, true)
 	}
 
-	dom_zoom.oninput = function () {
+	dom_zoom.onchange = function() {
 		zoom(this.value, true)
 	}
 
-	dom_erase.onclick = function () {
+	dom_erase.onclick = function() {
 		erase()
 	}
 
-	id('toSettings').onclick = function () {
+	id('toSettings').onclick = function() {
 		dom_settings.className = (dom_settings.className !== "open" ? "open" : "")
 	}
+}
+
+
+window.onload = function() {
+
+	events()
 
 	id("wrap").className = "loaded"
-
 	isLoggedIn()
-	setuserinputwidth()
 }
