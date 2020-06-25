@@ -185,7 +185,7 @@ function captchaTest(callback) {
 	
 				let xhttp = new XMLHttpRequest();
 	
-				xhttp.open("POST", "captcha.php", true)
+				xhttp.open("POST", "https://victor-azevedo.me/paste/captcha.php", true)
 				xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
 				xhttp.onreadystatechange = function() {
 					if (this.readyState == 4 && this.status == 200) {
