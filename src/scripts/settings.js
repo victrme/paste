@@ -38,7 +38,7 @@ function storage(type, data) {
                     filename: "",
                     password: false,
                     theme: "",
-					zoom: 1
+					zoom: 12
 				}
 				localStorage.paste = JSON.stringify(x);
 				return JSON.parse(localStorage.paste);
@@ -140,34 +140,74 @@ function theme(color, event) {
 	}
 
 	let l = storage("local")
+	l.theme = color
+	storage("local", l)
+	applyTheme(color)
 
 	if (event) {
-
-		applyTheme(color)
-		l.theme = color
-		storage("local", l)
 		typingWait(updateNote)
-
 	} else {
-		applyTheme(color)
+		dom_background.value = color
 	}
 }
 
 function zoom(val, event) {
 
-	let l = storage("local");
+	if (val !== NaN
+		&& val >= 12
+		&& val <= 16) {
 
-	if (event) {
-		document.body.style.zoom = l.zoom
+		let l = storage("local");
+
+		document.body.style.fontSize = val + "px"
 		l.zoom = val
 		storage("local", l)
 
-		typingWait(updateNote)
+		if (event) {
+			typingWait(updateNote)
+		} else {
+			dom_zoom.value = val
+		}
 	}
+}
+
+function captchaTest(callback) {
+
+	//don't captcha localfile
+	//this needs a fix
+	if (window.location.protocol === "file:") {
+		callback()
+	}
+
 	else {
-		dom_zoom.value = l.zoom;
-		document.body.style.zoom = val;
+		grecaptcha.ready(function() {
+			grecaptcha.execute(atob("NkxmdWthZ1pBQUFBQUtpZjU1YU1YMGZEaUEyV1lHMWF2RmxOWXZIaA=="), {action: 'submit'}).then(function(token) {
+	
+				let xhttp = new XMLHttpRequest();
+	
+				xhttp.open("POST", "captcha.php", true)
+				xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+				xhttp.onreadystatechange = function() {
+					if (this.readyState == 4 && this.status == 200) {
+						if (this.responseText === "not a bot") {
+							callback()
+						}
+					}
+				}
+				
+				xhttp.send("token=" + token)
+			})
+		})
 	}
+}
+
+function typingWait(callback) {
+
+	//commence un timer de .7s
+	clearTimeout(typingTimeout);
+	typingTimeout = setTimeout(function() {
+		callback()
+	}, 700);
 }
 
 
@@ -177,7 +217,9 @@ const id = elem => document.getElementById(elem)
 
 let conf = false,
 	confTimer = 0,
-	typingTimeout = 0;
+	typingTimeout = 0,
+	dbref = null,
+	initlistener = true;
 
 const dom_username = id("username"),
 	dom_note = id("note"),
@@ -187,37 +229,6 @@ const dom_username = id("username"),
 	dom_background = id("background"),
 	dom_zoom = id("zoom"),
 	dom_erase = id("erase");
-
-const typingWait = callback => {
-
-	//commence un timer de .7s
-	clearTimeout(typingTimeout);
-	typingTimeout = setTimeout(function() {
-		callback()
-	}, 700);
-}
-
-const captchaTest = callback => {
-
-	grecaptcha.ready(function() {
-		grecaptcha.execute(atob("NkxmdWthZ1pBQUFBQUtpZjU1YU1YMGZEaUEyV1lHMWF2RmxOWXZIaA=="), {action: 'submit'}).then(function(token) {
-
-			let xhttp = new XMLHttpRequest();
-
-			xhttp.open("POST", "captcha.php", true)
-			xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-			xhttp.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					if (this.responseText === "not a bot") {
-						callback()
-					}
-				}
-			}
-			
-			xhttp.send("token=" + token)
-		})
-	})
-}
 
 let firebaseConfig = {
 	apiKey: "AIzaSyCVqSZy0y_nue8fBiU_bX1kI3Ltd76_ObM",
@@ -232,3 +243,4 @@ let firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig)
 let database = firebase.database()
+
