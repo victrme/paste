@@ -29,7 +29,7 @@ input {
 #wrap {
 	position: relative;
 	width: 100%;
-	max-width: 700px;
+	max-width: 50em;
 	margin: auto;
 	opacity: 0;
 	transition: opacity .1s;
@@ -75,9 +75,7 @@ header #pattern {
 }
 
 #username {
-	width: calc(7.15px * 10);
-	min-width: calc(7.15px * 10);
-	max-width: calc(7.15px * 32);
+	max-width: 15em;
 }
 
 #alert {line-height: 3em;}
@@ -132,10 +130,15 @@ textarea {
 
 #settings p {
 	margin: 0;
-	margin-left: 1em;
+}
+
+#settings p span {
+	margin: 0 .5em 0 1em;
 }
 
 #settings input {
+	margin: 0;
+	padding-left: 0;
 	max-width: 80px;
 }
 
@@ -155,6 +158,8 @@ textarea {
 
 @media only screen and (max-width: 750px) {
 
+
+
 	#username {
 		max-width: calc(7.15px * 16);
 	}
@@ -165,6 +170,7 @@ textarea {
 
 	#settings p,
 	#settings input,
+	#settings p span,
 	#settings button{
 		margin: 0;
 		padding: 0;

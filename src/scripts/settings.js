@@ -53,18 +53,18 @@ function removeUserData(local) {
 	local.filename = ""
 	storage("local", local)
 
-	dom_note.removeAttribute("disabled")
-	dom_note.value = ""
-	dom_password.value = ""
+	dom.note.removeAttribute("disabled")
+	dom.note.value = ""
+	dom.password.value = ""
 	document.body.style = ""
 
 	sessionStorage.removeItem("paste");
 }
 
 function resetPaste() {
-	dom_pattern.style.backgroundImage = GeoPattern.generate("").toDataUrl()
+	dom.pattern.style.backgroundImage = GeoPattern.generate("").toDataUrl()
 	removeUserData(storage("local"))
-	dom_settings.className = ""
+	dom.settings.className = ""
 	document.querySelector("header").className = ""
 }
 
@@ -135,7 +135,7 @@ function theme(color, event) {
 		if (textColor) {
 			document.body.style.background = (val.indexOf("#") === -1 ? "#" + val : val)
 			document.body.style.color = textColor
-			dom_background.value = val
+			dom.background.value = val
 		}
 	}
 
@@ -147,7 +147,7 @@ function theme(color, event) {
 	if (event) {
 		typingWait(updateNote)
 	} else {
-		dom_background.value = color
+		dom.background.value = color
 	}
 }
 
@@ -166,7 +166,7 @@ function zoom(val, event) {
 		if (event) {
 			typingWait(updateNote)
 		} else {
-			dom_zoom.value = val
+			dom.zoom.value = val
 		}
 	}
 }
@@ -213,22 +213,27 @@ function typingWait(callback) {
 
 // GLOBAL VAL INIT OH NO
 
-const id = elem => document.getElementById(elem)
-
 let conf = false,
 	confTimer = 0,
+	alertTimeout = 0,
 	typingTimeout = 0,
 	dbref = null,
 	initlistener = true;
 
-const dom_username = id("username"),
-	dom_note = id("note"),
-	dom_settings = id("settings"),
-	dom_password = id("password"),
-	dom_pattern = id("pattern"),
-	dom_background = id("background"),
-	dom_zoom = id("zoom"),
-	dom_erase = id("erase");
+const id = elem => document.getElementById(elem);
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userA).agent;
+
+const dom = {
+	username: id("username"),
+	note: id("note"),
+	settings: id("settings"),
+	toSettings: id('toSettings'),
+	password: id("password"),
+	pattern: id("pattern"),
+	background: id("background"),
+	zoom: id("zoom"),
+	erase: id("erase")
+}
 
 let firebaseConfig = {
 	apiKey: "AIzaSyCVqSZy0y_nue8fBiU_bX1kI3Ltd76_ObM",

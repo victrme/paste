@@ -2,13 +2,13 @@
 function encrypt(message, user) {
 
 	let l = storage("local");
-	let ran = Date.now().toString();									//IV is ran: now()
-	let key = CryptoJS.SHA3(user + ran).toString();						//key is long user + IV
+	let ran = Date.now().toString();								//IV is ran: now()
+	let key = CryptoJS.SHA3(user + ran).toString();					//key is long user + IV
 	let encr = CryptoJS.AES.encrypt(message, key).toString();		//first base64 wrap
 
 	const package = JSON.stringify({
 		ran: ran,
-		note: btoa(encr),												//second base64 wrap for sending encrypted note
+		note: btoa(encr),											//second base64 wrap for sending encrypted note
 		settings: {
 			theme: l.theme,
 			zoom: l.zoom
@@ -73,17 +73,17 @@ function decrypt(package) {
 		//si password est cool
 		if (package !== false) {
 
-			dom_note.removeAttribute("disabled")
-			dom_note.focus()
+			dom.note.removeAttribute("disabled")
+			dom.note.focus()
 			id("settings").className = ""
 			return applyDecrypt(package)
 
 		} else {
 			//mauvais password
-			dom_note.setAttribute("disabled", "")
+			dom.note.setAttribute("disabled", "")
 			id("settings").className = "open"
-			dom_password.value = ""
-			dom_password.focus()
+			dom.password.value = ""
+			dom.password.focus()
 
 			return "This note is protected by a password"
 		}
@@ -96,32 +96,57 @@ function decrypt(package) {
 
 function password(arg) {
 
-	const mdp = dom_password.value
+	const mdp = dom.password.value
 
-	if (arg.is === "enc" && mdp === "") {
-		return arg.note
-	}
-
-	else if (arg.is === "enc") {
-		return "yaunmdp" + btoa(CryptoJS.AES.encrypt(arg.note, mdp).toString())
-	}
-
-	else if (arg.is === "dec") {
-
-		let decrypted = false
-		arg.note = arg.note.replace("yaunmdp", "")
+	if (arg.event) {
+		
+		let received = ""
+		let l = storage("local")
 
 		try {
-			decrypted = CryptoJS.AES
-				.decrypt(atob(arg.note), mdp)
-				.toString(CryptoJS.enc.Utf8)
-
-		} catch (error) {
-			console.warn("N'a pas pu déchiffrer")
-			decrypted = false
+			received = JSON.parse(sessionStorage.paste).rece
+		} catch(e) {
+			console.warn("nothing received yet")
 		}
 
-		return decrypted
+		//quand on enter
+		if (e.keyCode === 13) {
+
+			l.password = this.value !== "" //si mdp vide, false
+			storage("local", l)
+
+			//si 
+			(!received ? dom.note.focus() : dom.note.value = decrypt(received))
+		}
+	}
+
+	else {
+
+		if (arg.is === "enc" && mdp === "") {
+			return arg.note
+		}
+	
+		else if (arg.is === "enc") {
+			return "yaunmdp" + btoa(CryptoJS.AES.encrypt(arg.note, mdp).toString())
+		}
+	
+		else if (arg.is === "dec") {
+	
+			let decrypted = false
+			arg.note = arg.note.replace("yaunmdp", "")
+	
+			try {
+				decrypted = CryptoJS.AES
+					.decrypt(atob(arg.note), mdp)
+					.toString(CryptoJS.enc.Utf8)
+	
+			} catch (error) {
+				console.warn("N'a pas pu déchiffrer")
+				decrypted = false
+			}
+	
+			return decrypted
+		}
 	}
 }
 
@@ -143,7 +168,7 @@ function isLoggedIn() {
 			else if (s.sent !== "" && s.rece !== "") {
 				sentTime = JSON.parse(s.sent).ran
 				receTime = JSON.parse(s.rece).ran
-				dom_note.value = decrypt((sentTime > receTime ? s.sent : s.rece))
+				dom.note.value = decrypt((sentTime > receTime ? s.sent : s.rece))
 			}
 		}
 	}
@@ -156,13 +181,13 @@ function isLoggedIn() {
 	
 
 	if (hash !== "") {
-		dom_username.value = hash
+		dom.username.value = hash
 		login(true)
 	}
 	else if (l.user && l.filename !== "9e50bb628aacc742") {
 
 		getusername()
-		dom_note.focus()
+		dom.note.focus()
 		toServer("lol", l.filename, "read")
 	}
 	else {
@@ -180,8 +205,8 @@ function getusername(state, name) {
 	let dec = CryptoJS.AES.decrypt(atob(l.encoded), l.user);
 	dec = dec.toString(CryptoJS.enc.Utf8);
 
-	dom_pattern.style.backgroundImage = GeoPattern.generate(dec).toDataUrl()
-	dom_username.value = dec
+	dom.pattern.style.backgroundImage = GeoPattern.generate(dec).toDataUrl()
+	dom.username.value = dec
 }
 
 function login() {
@@ -212,20 +237,20 @@ function login() {
 	
 			let enc = btoa(CryptoJS.AES.encrypt(plaintext, local.user).toString());
 			local.encoded = enc;
-			dom_pattern.style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
+			dom.pattern.style.backgroundImage = GeoPattern.generate(plaintext).toDataUrl()
 			window.location.href = window.location.pathname + "#" + plaintext
 		}
 	
 		//defini les variables
 		let local = storage("local");
-		let user = CryptoJS.SHA3(dom_username.value).toString();
+		let user = CryptoJS.SHA3(dom.username.value).toString();
 		let fileName = filename(user);
 	
 		//ajoute username et enregistre
-		setusername(dom_username.value);
+		setusername(dom.username.value);
 	
 		//focus la note et refresh la note
-		dom_note.focus()
+		dom.note.focus()
 
 		//removes previous listener
 		if (dbref) {
@@ -244,7 +269,7 @@ function login() {
 	
 			if (initlistener || !sameNote && sameFile) {
 	
-				dom_note.value = decrypt(read_val)
+				dom.note.value = decrypt(read_val)
 				session.rece = read_val
 				storage("session", session)
 				alert("Received !")
@@ -270,7 +295,7 @@ function updateNote() {
 	let local = storage("local");
 	let session = storage("session");
 
-	session.sent = encrypt(dom_note.value, local.user);
+	session.sent = encrypt(dom.note.value, local.user);
 	storage("session", session);
 
 	toServer(session.sent, local.filename, "send");
@@ -310,27 +335,23 @@ function alert(state) {
 	alertTimeout = setTimeout(function() {alert.className = ""}, 1000)
 }
 
-
-//globalooo
-let alertTimeout = 0
-
-const setUserInputWidth = (backspace) => {
+function setUserInputWidth(backspace) {
 
 	let fontsize = parseInt(document.body.style.fontSize) || 12
-	let valueLength = dom_username.value.length + (backspace ? 0 : 2)
+	let valueLength = dom.username.value.length + (backspace ? 0 : 2)
 	let inputwidth = (fontsize * .59) * valueLength
 
-	if (inputwidth < fontsize * 8) inputwidth = fontsize * 8
-
-	console.log(inputwidth)
+	if (dom.username.value.length < 2) {
+		inputwidth = fontsize * 5
+	}
 	
-	dom_username.style.width = inputwidth + "px"
+	dom.username.style.width = inputwidth + "px"
 }
 
-const events = () => {
+function events() {
 
 	//main
-	dom_username.onkeydown = function(e) {
+	dom.username.onkeydown = function(e) {
 
 		//backspace
 		if (e.keyCode === 8) {
@@ -351,51 +372,32 @@ const events = () => {
 		else setUserInputWidth()
 	}
 
-	dom_note.onkeydown = function() {
+	dom.note.onkeydown = function() {
 		typingWait(updateNote)
 	}
 
 
 	//settings
-	dom_password.onkeypress = function(e) {
-		
-		let received = ""
-		let l = storage("local")
-
-		try {
-			received = JSON.parse(sessionStorage.paste).rece
-		} catch(e) {
-			console.warn("nothing received yet")
-		}
-
-		//quand on enter
-		if (e.keyCode === 13) {
-
-			l.password = this.value !== "" //si mdp vide, false
-			storage("local", l)
-
-			//si 
-			(!received ? dom_note.focus() : dom_note.value = decrypt(received))
-		}
+	dom.password.onkeypress = function(e) {
+		password({event: true, e: e})
 	}
 
-	dom_background.oninput = function() {
+	dom.background.oninput = function() {
 		theme(this.value, true)
 	}
 
-	dom_zoom.onchange = function() {
+	dom.zoom.onchange = function() {
 		zoom(this.value, true)
 	}
 
-	dom_erase.onclick = function() {
+	dom.erase.onclick = function() {
 		erase()
 	}
 
-	id('toSettings').onclick = function() {
-		dom_settings.className = (dom_settings.className !== "open" ? "open" : "")
+	dom.toSettings.onclick = function() {
+		dom.settings.className = (dom.settings.className !== "open" ? "open" : "")
 	}
 }
-
 
 window.onload = function() {
 
@@ -403,4 +405,7 @@ window.onload = function() {
 
 	id("wrap").className = "loaded"
 	isLoggedIn()
+
+	//change mobile icon
+	if (isMobile) id("toSettings").innerText = "☰"
 }
