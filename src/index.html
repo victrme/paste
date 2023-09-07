@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Paste - sync, efficiently</title>
+
+		<link rel="shortcut icon" href="https://victr.me/favicon-16x16.png" type="image/png" />
+
+		<script src="https://unpkg.com/htmx.org@1.9.5"></script>
+		<script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+		<script src="https://cdn.skypack.dev/twind/shim" type="module"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+	</head>
+	<body
+		class="flex items-center justify-center w-full max-w-2xl h-screen mx-auto px-8 pb-16 bg-yellow-200 text-gray-600 text-lg"
+		style="opacity: 0"
+		script="
+		init
+			set currId to window.location.pathname.replace('/', '')
+			set .form-id.value to currId
+			set #icon.style.backgroundImage to `url(${GeoPattern.generate(currId).toDataUri()})` 
+			remove @style from body
+		"
+	>
+		<div class="hidden">
+			<div id="hidden-fetch-content"></div>
+			<div id="hidden-fetch-id"></div>
+		</div>
+
+		<div class="w-full flex flex-col bg-white overflow-hidden">
+			<div class="flex justify-between">
+				<div class="flex w-full">
+					<div id="icon" class="w-12 h-12 bg-blue-100"></div>
+					<input
+						type="text"
+						name="id"
+						maxlength="64"
+						placeholder="thisismypaste"
+						hx-post="/"
+						hx-trigger="change, load delay:10ms"
+						hx-target="#hidden-fetch-content"
+						hx-swap="innerText"
+						class="form-id w-full h-full pl-4 outline-none tracking-wider"
+						script="
+						on input 
+							set .form-id.value to my value
+						on htmx:afterRequest
+							set the value of the next <textarea/> to #hidden-fetch-content.innerText
+							set #icon.style.backgroundImage to `url(${GeoPattern.generate(my value).toDataUri()})`
+						"
+					/>
+				</div>
+				<button
+					id="options-icon"
+					type="button"
+					class="px-4 hover:bg-gray-100 whitespace-nowrap active:bg-gray-200 focus:outline-none"
+					script="on click toggle the *display of #options"
+				>
+					⚙️ Settings
+				</button>
+			</div>
+
+			<div id="options" script="init hide me" class="flex items-center justify-center gap-4 px-4 py-2">
+				<div>
+					<form
+						hx-delete="/"
+						hx-trigger="submit throttle:2000ms"
+						hx-target="#hidden-fetch-content"
+						hx-swap="innerText"
+						script="
+						on htmx:afterOnLoad
+							toggle the *display of #options
+							set .form-content.value to ''
+							set .form-id.value to ''
+							set #content.value to ''
+							set #icon.style.backgroundImage to `url(${GeoPattern.generate('').toDataUri()})`
+					"
+					>
+						<input class="form-id" type="hidden" name="id" />
+						<button id="delete" type="submit" class="text-sm text-red-600">Delete this paste</button>
+					</form>
+				</div>
+			</div>
+
+			<form hx-boost="true" hx-put="/" hx-trigger="input delay:600ms" hx-swap="none">
+				<input class="form-id" type="hidden" name="id" />
+				<textarea
+					class="w-full h-96 bg-yellow-50 p-4 outline-none overflow-auto break-words resize-vertical tracking-wide"
+					id="content"
+					name="content"
+					placeholder="Hellowld... "
+					maxlength="2048"
+				></textarea>
+			</form>
+		</div>
+	</body>
+</html>

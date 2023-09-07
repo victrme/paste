@@ -1,0 +1,16 @@
+{
+	"name": "paste",
+	"version": "1.0.50",
+	"module": "src/server.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "bun run --watch src/server.ts"
+	},
+	"devDependencies": {
+		"@flydotio/dockerfile": "latest",
+		"bun-types": "latest"
+	},
+	"dependencies": {
+		"ioredis": "^5.3.2"
+	}
+}
