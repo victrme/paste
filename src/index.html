@@ -13,7 +13,7 @@
 		<script src="node_modules/@victr/geopattern/dist/geopattern.min.js"></script>
 	</head>
 	<body
-		class="flex items-center justify-center w-full max-w-2xl h-screen mx-auto px-8 pb-16 bg-yellow-200 text-gray-600 text-lg"
+		class="flex flex-col w-full max-w-3xl h-screen mx-auto px-4 py-8 sm:py-48 bg-yellow-200 text-gray-600 text-lg dark:bg-zinc-900 dark:text-slate-200"
 		style="opacity: 0"
 		script="
 		init
@@ -28,12 +28,15 @@
 			<div id="hidden-fetch-id"></div>
 		</div>
 
-		<div class="w-full flex flex-col bg-white overflow-hidden">
-			<div class="flex justify-between">
-				<div class="flex w-full">
-					<div class="w-12 h-12 bg-blue-100 overflow-hidden">
-						<div id="icon" class="w-full h-full bg-cover scale-250"></div>
-					</div>
+		<div class="w-full h-full flex flex-col bg-white overflow-hidden dark:bg-zinc-700">
+			<div
+				class="w-full grid grid-cols-[2.5em_2fr_1fr] grid-rows-[2.5em] sm:grid-cols-[3em_2fr_140px] sm:grid-rows-[3em]"
+			>
+				<div class="bg-blue-100 overflow-hidden">
+					<div id="icon" class="w-full h-full bg-cover scale-250"></div>
+				</div>
+
+				<div class="relative">
 					<input
 						type="text"
 						name="id"
@@ -43,20 +46,21 @@
 						hx-trigger="change, load delay:10ms"
 						hx-target="#hidden-fetch-content"
 						hx-swap="innerText"
-						class="form-id w-full h-full pl-4 outline-none tracking-wider"
+						class="form-id w-full h-full grow pl-4 bg-transparent outline-none tracking-wider"
 						script="
-						on input 
-							set .form-id.value to my value
-						on htmx:afterRequest
-							set the value of the next <textarea/> to #hidden-fetch-content.innerText
-							set #icon.style.backgroundImage to `url(${GeoPattern.generate(my value).toDataUri()})`
-						"
+							on input 
+								set .form-id.value to my value
+							on htmx:afterRequest
+								set the value of the next <textarea/> to #hidden-fetch-content.innerText
+								set #icon.style.backgroundImage to `url(${GeoPattern.generate(my value).toDataUri()})`
+							"
 					/>
 				</div>
+
 				<button
 					id="options-icon"
 					type="button"
-					class="px-4 hover:bg-gray-100 whitespace-nowrap active:bg-gray-200 focus:outline-none"
+					class="px-4 whitespace-nowrap hover:bg-gray-100 active:bg-gray-200 focus:outline-none dark:hover:bg-zinc-600 dark:active:bg-zinc-500"
 					script="on click toggle the *display of #options"
 				>
 					⚙️ Settings
@@ -85,10 +89,10 @@
 				</div>
 			</div>
 
-			<form hx-boost="true" hx-put="/" hx-trigger="input delay:600ms" hx-swap="none">
+			<form hx-boost="true" hx-put="/" hx-trigger="input delay:600ms" hx-swap="none" class="flex h-full">
 				<input class="form-id" type="hidden" name="id" />
 				<textarea
-					class="w-full h-96 bg-yellow-50 p-4 outline-none overflow-auto break-words resize-vertical tracking-wide"
+					class="w-full bg-yellow-50 p-6 outline-none overflow-auto break-words resize-none tracking-wide dark:bg-zinc-800"
 					id="content"
 					name="content"
 					placeholder="Hellowld... "
@@ -100,6 +104,12 @@
 						"
 				></textarea>
 			</form>
+		</div>
+
+		<div class="mt-4 text-center text-sm">
+			<a class="opacity-50 hover:opacity-100 hover:underline" href="https://github.com/victrme/paste">source</a>
+			<span class="opacity-50"> - </span>
+			<a class="opacity-50 hover:opacity-100 hover:underline" href="https://github.com/victrme/paste">privacy</a>
 		</div>
 	</body>
 </html>
