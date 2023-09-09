@@ -5,12 +5,12 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Paste - sync, efficiently</title>
 
-		<link rel="shortcut icon" href="https://victr.me/favicon-16x16.png" type="image/png" />
+		<link rel="shortcut icon" href="src/icons/favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" href="src/style.css" />
 
-		<script src="https://unpkg.com/htmx.org@1.9.5"></script>
-		<script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
-		<script src="https://cdn.skypack.dev/twind/shim" type="module"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+		<script src="node_modules/htmx.org/dist/htmx.min.js"></script>
+		<script src="node_modules/hyperscript.org/dist/_hyperscript.min.js"></script>
+		<script src="node_modules/@victr/geopattern/dist/geopattern.min.js"></script>
 	</head>
 	<body
 		class="flex items-center justify-center w-full max-w-2xl h-screen mx-auto px-8 pb-16 bg-yellow-200 text-gray-600 text-lg"
@@ -31,7 +31,9 @@
 		<div class="w-full flex flex-col bg-white overflow-hidden">
 			<div class="flex justify-between">
 				<div class="flex w-full">
-					<div id="icon" class="w-12 h-12 bg-blue-100"></div>
+					<div class="w-12 h-12 bg-blue-100 overflow-hidden">
+						<div id="icon" class="w-full h-full bg-cover scale-250"></div>
+					</div>
 					<input
 						type="text"
 						name="id"
@@ -91,6 +93,11 @@
 					name="content"
 					placeholder="Hellowld... "
 					maxlength="2048"
+					script="on input
+						if .form-id.value[0] is empty
+							halt
+						end
+						"
 				></textarea>
 			</form>
 		</div>

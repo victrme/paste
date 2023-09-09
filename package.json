@@ -4,13 +4,20 @@
 	"module": "src/server.ts",
 	"type": "module",
 	"scripts": {
-		"dev": "bun run --watch src/server.ts"
+		"watch": "bun --hot run src/server.ts",
+		"css": "bunx tailwindcss -o src/style.css --minify --watch",
+		"dev": "concurrently \"bun run css\" \"bun run watch\""
 	},
 	"devDependencies": {
 		"@flydotio/dockerfile": "latest",
-		"bun-types": "latest"
+		"bun-types": "latest",
+		"concurrently": "^8.2.1",
+		"tailwindcss": "^3.3.3"
 	},
 	"dependencies": {
+		"@victr/geopattern": "^1.2.7",
+		"hyperscript.org": "^0.9.11",
+		"htmx.org": "^1.9.5",
 		"ioredis": "^5.3.2"
 	}
 }

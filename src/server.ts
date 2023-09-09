@@ -1,11 +1,17 @@
 import { Redis } from 'ioredis'
 
 const redis = Bun.env.NODE_ENV === 'production' ? new Redis(Bun.env.REDIS_URL ?? '') : devRedis()
-const index = Bun.file('src/index.html')
 
 Bun.serve({
 	async fetch(req: Request): Promise<Response> {
 		//
+		const url = new URL(req.url)
+		const path = url.pathname.replace('/', '')
+		const requestsHTML = req.headers.get('accept')?.includes('text/html')
+
+		if (req.method === 'GET' && requestsHTML) {
+			return new Response(Bun.file('src/index.html'))
+		}
 
 		if (req.method === 'POST') {
 			const { id } = await getClientData(req)
@@ -20,7 +26,10 @@ Bun.serve({
 
 		if (req.method === 'PUT') {
 			const { id, content } = await getClientData(req)
-			await redis.set(id, content)
+
+			if (id !== '') {
+				await redis.set(id, content)
+			}
 
 			return new Response('')
 		}
@@ -31,13 +40,35 @@ Bun.serve({
 			return new Response('', { headers: { 'HX-Replace-Url': '/' } })
 		}
 
-		return new Response(index)
+		return new Response(Bun.file(path))
+	},
+
+	error(error) {
+		return new Response(
+			JSON.stringify({
+				message: error.message,
+				stack: error.stack,
+			}),
+			{
+				status: 500,
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}
+		)
 	},
 })
 
 function devRedis(): Pick<Redis, 'get' | 'set' | 'del'> {
 	const db: { [key: string]: string } = {
 		hello: 'world',
+		'': `Hello world, this is another paste service !
+
+- No login, you can type a name above to start a new paste.
+- Every paste are public, so you can delete other people's pastes.
+- Saves automatically on typing
+- Limited to 2048 characters
+- You cannot edit this one, but nice try`,
 	}
 
 	return {
@@ -62,31 +93,3 @@ async function getClientData(req: Request): Promise<{ id: string; content: strin
 
 	return { id, content }
 }
-
-// import { Database } from 'bun:sqlite'
-// const db = new Database('')
-
-// db.query('CREATE TABLE Pastes (id VARCHAR(255) PRIMARY KEY,content VARCHAR(1000));').run()
-// db.query("INSERT INTO Pastes (id, content) VALUES ('hello', 'world');").run()
-
-// function getAll(): Paste[] | undefined {
-// 	const all = db.query('SELECT * FROM Pastes').all() as Paste[]
-// 	return all
-// }
-
-// function getRow(id: string): Paste | undefined {
-// 	const all = db.query('SELECT * FROM Pastes WHERE id = ?;').all(id) as Paste[]
-// 	return all.length > 0 ? all[0] : undefined
-// }
-
-// function addRow(id: string): undefined {
-// 	db.query("INSERT INTO Pastes (id, content) VALUES (?, '');").run(id)
-// }
-
-// function updateRow(id: string, content: string): undefined {
-// 	db.query('UPDATE Pastes SET content = ?1 WHERE id = ?2;').run(content, id)
-// }
-
-// function deleteRow(id: string): undefined {
-// 	db.query('DELETE FROM Pastes WHERE id = ?;').run(id)
-// }

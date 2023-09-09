@@ -22,6 +22,7 @@ RUN apt-get update -qq && \
 # Install node modules
 COPY --link bun.lockb package.json ./
 RUN bun install --ci
+    bun run css
 
 # Copy application code
 COPY --link . .
