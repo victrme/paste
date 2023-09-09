@@ -4,20 +4,22 @@
 </p>
 
 <h1 align="center">paste</h1>
-<p align="center">syncronized quick notes with client side encryption</p>
+<p align="center">syncronized quick notes <s>with client side encryption</s></p>
 
+### But, why 
 
-#### How to use
+This is a fullstack webapp with only 2 files !! (+config files 🫠)
 
-* Go to [pastes.app](https://pastes.app)
-* Submit a username
-* Start typing whatever
-* that is it
+Stack:
+- Layout: HTML
+- Styling: Tailwindcss
+- Interactivity: HTMX + Hyperscript
+- HTTP Server: Bun
+- Hosting: Fly.io
+- Database: Redis
 
-You can change the background color of your paste, or erase it completely from the server
+### Privacy
 
-
-
-![GitHub Logo](/src/images/preview2.jpg)
-
-![GitHub Logo](/src/images/preview1.jpg)
+All pastes are **public**, so anyone can access them. Don't store anything personal.  
+Redis eviction is enabled, which means that old data can be removed at random if max memory is reached. (it won't)  
+I reserve the right to obliterate the database if something goes wrong.
