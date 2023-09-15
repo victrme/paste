@@ -10,7 +10,11 @@ Bun.serve({
 		const requestsHTML = req.headers.get('accept')?.includes('text/html')
 
 		if (req.method === 'GET' && requestsHTML) {
-			return new Response(Bun.file('src/index.html'))
+			return new Response(Bun.file('src/index.html'), {
+				headers: {
+					'cache-control': 'max-age=3600, public',
+				},
+			})
 		}
 
 		if (req.method === 'POST') {
@@ -40,7 +44,11 @@ Bun.serve({
 			return new Response('', { headers: { 'HX-Replace-Url': '/' } })
 		}
 
-		return new Response(Bun.file(path))
+		return new Response(Bun.file(path), {
+			headers: {
+				'cache-control': 'max-age=604800, public',
+			},
+		})
 	},
 
 	error(error) {
