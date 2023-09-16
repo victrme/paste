@@ -18,21 +18,23 @@ Bun.serve({
 		}
 
 		if (req.method === 'POST') {
-			const { id } = await getClientData(req)
-			const content = await redis.get(id)
+			const data = await getClientData(req)
+			const hash = Bun.hash(data.id).toString()
+			const content = await redis.get(hash)
 
 			if (content === null) {
-				await redis.set(id, '')
+				await redis.set(hash, '')
 			}
 
-			return new Response(content, { headers: { 'HX-Replace-Url': `/${id}` } })
+			return new Response(content, { headers: { 'HX-Replace-Url': `/${data.id}` } })
 		}
 
 		if (req.method === 'PUT') {
 			const { id, content } = await getClientData(req)
+			const hash = Bun.hash(id).toString()
 
 			if (id !== '') {
-				await redis.set(id, content)
+				await redis.set(hash, content)
 			}
 
 			return new Response('')
@@ -40,7 +42,9 @@ Bun.serve({
 
 		if (req.method === 'DELETE') {
 			const { id } = await getClientData(req)
-			await redis.del(id)
+			const hash = Bun.hash(id).toString()
+			await redis.del(hash)
+
 			return new Response('', { headers: { 'HX-Replace-Url': '/' } })
 		}
 
@@ -67,10 +71,18 @@ Bun.serve({
 	},
 })
 
+async function getClientData(req: Request): Promise<{ id: string; content: string }> {
+	const formData = await req.formData()
+	const id = (formData.get('id') ?? '') as string
+	const content = (formData.get('content') ?? '') as string
+
+	return { id, content }
+}
+
 function devRedis(): Pick<Redis, 'get' | 'set' | 'del'> {
 	const db: { [key: string]: string } = {
-		hello: 'world',
-		'': `Hello world, this is another paste service !
+		'1019145960556548909': 'world',
+		'290873116282709081': `Hello world, this is another paste service !
 
 - No login, you can type a name above to start a new paste.
 - Every paste are public, so you can delete other people's pastes.
@@ -92,12 +104,4 @@ function devRedis(): Pick<Redis, 'get' | 'set' | 'del'> {
 			return keys.length
 		},
 	}
-}
-
-async function getClientData(req: Request): Promise<{ id: string; content: string }> {
-	const formData = await req.formData()
-	const id = formData.get('id') as string
-	const content = formData.get('content') as string
-
-	return { id, content }
 }
