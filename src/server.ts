@@ -43,7 +43,10 @@ Bun.serve({
 		if (req.method === 'DELETE') {
 			const { id } = await getClientData(req)
 			const hash = Bun.hash(id).toString()
-			await redis.del(hash)
+
+			if (id !== '') {
+				await redis.del(hash)
+			}
 
 			return new Response('', { headers: { 'HX-Replace-Url': '/' } })
 		}
