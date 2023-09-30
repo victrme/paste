@@ -3,18 +3,10 @@
 		"lib": ["ESNext"],
 		"module": "esnext",
 		"target": "esnext",
-		"moduleResolution": "bundler",
-		"moduleDetection": "force",
-		"allowImportingTsExtensions": true,
 		"strict": true,
-		"downlevelIteration": true,
-		"skipLibCheck": true,
+		"moduleResolution": "bundler",
 		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": true,
-		"allowJs": true,
-		"noEmit": true,
-		"types": [
-			"bun-types" // add Bun global
-		]
+		"types": ["bun-types"]
 	}
 }
